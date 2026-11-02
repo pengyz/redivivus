@@ -1,0 +1,6 @@
+[submodule "thirdparty/ghidra-reconstruct"]
+	path = thirdparty/ghidra-reconstruct
+	url = https://github.com/jaenster/ghidra-reconstruct
+[submodule "thirdparty/ghidra-mcp"]
+	path = thirdparty/ghidra-mcp
+	url = https://github.com/jaenster/ghidra-mcp
