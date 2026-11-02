@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "note": "编译器外置配置（通用反编译工作流共用）——新增编译器只改此文件",
+  "toolchains": {
+    "vc6": {
+      "kind": "msvc6",
+      "cc": "wine_cl.sh",
+      "root_env": "PAL3_MSVC6_ROOT",
+      "flags": ["/O2", "/Ob2", "/Oi", "/Ot", "/Oy", "/Gy", "/G5"],
+      "defines": ["WIN32", "_WINDOWS"],
+      "capability": ["L1", "L2"],
+      "note": "MSVC 6.0 SP0——L2 一致性裁判（唯一字节真值编译器）"
+    },
+    "mingw-i686": {
+      "kind": "mingw",
+      "cc": "i686-w64-mingw32-g++",
+      "flags": ["-O0", "-std=c++98", "-fpermissive"],
+      "defines": ["WIN32"],
+      "capability": ["L1"],
+      "note": "L1 快检（禁作 L2 判据）"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "project": "PAL3",
+  "binary": {
+    "exe": "PAL3.exe",
+    "path": "original/PAL3.exe",
+    "arch": "x86",
+    "base": "0x400000"
+  },
+  "toolchains": {
+    "vc6": {
+      "kind": "msvc6",
+      "cc": "wine_cl.sh",
+      "root_env": "PAL3_MSVC6_ROOT",
+      "flags": ["/O2", "/Ob2", "/Oi", "/Ot", "/Oy", "/Gy", "/G5"],
+      "defines": ["WIN32", "_WINDOWS"],
+      "note": "L2 一致性裁判（唯一字节真值编译器）"
+    },
+    "mingw": {
+      "kind": "mingw-i686",
+      "cc": "i686-w64-mingw32-g++",
+      "flags": ["-O0", "-std=c++98", "-fpermissive"],
+      "defines": ["WIN32"],
+      "note": "L1 快检（禁作 L2 判据）"
+    }
+  },
+  "active_toolchain": "vc6",
+  "judge": {
+    "L1": "compile",
+    "L2": "byte-compare",
+    "compare_engine": "compare_pal3.py",
+    "qualifications": "docs/knowledge/gotcha_l1_reloc_dontcare_three_qualifications.md"
+  },
+  "ghidra": {
+    "project": "PAL3_FX",
+    "program": "PAL3.exe"
+  }
+}

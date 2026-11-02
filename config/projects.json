@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "note": "通用反编译工作流·项目注册表（当前支持 D2 / PAL3）",
+  "toolchains_file": "toolchains.json",
+  "projects": {
+    "d2": {
+      "display": "Diablo II: LoD 1.14d",
+      "exe": "Game.exe",
+      "binary": "originals/Game.exe",
+      "arch": "x86",
+      "base": "0x400000",
+      "active_toolchain": "vc6",
+      "ghidra": {"project": "D2_114D", "program": "Game.exe"},
+      "tree": ["D2Client", "D2Common", "D2Game", "D2Win", "D2gfx", "Storm", "Fog", "Bnclient"],
+      "note": "数据层在 upstream 分支（本 fork 已剥离）；工作流配置保留=受支持项目"
+    },
+    "pal3": {
+      "display": "PAL3 (仙剑奇侠传三)",
+      "exe": "PAL3.exe",
+      "binary": "originals/PAL3.exe",
+      "arch": "x86",
+      "base": "0x400000",
+      "active_toolchain": "vc6",
+      "ghidra": {"project": "PAL3_FX", "program": "PAL3.exe"},
+      "tree": ["pal3"],
+      "note": "数据=PAL3Decomp annotation 转换层灌入"
+    }
+  }
+}
