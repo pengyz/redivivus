@@ -1,0 +1,25 @@
+diff --git a/ghidra-worker/src/main/java/com/ghidramcp/GhidraContext.java b/ghidra-worker/src/main/java/com/ghidramcp/GhidraContext.java
+index 4c9fe47..dcc8f49 100644
+--- a/ghidra-worker/src/main/java/com/ghidramcp/GhidraContext.java
++++ b/ghidra-worker/src/main/java/com/ghidramcp/GhidraContext.java
+@@ -163,7 +163,12 @@ public class GhidraContext {
+     /**
+      * Register a loaded program in the multi-program maps and make it the active program.
+      */
++    private static String normKey(String p) {
++        return (p != null && !p.startsWith("/")) ? "/" + p : p;
++    }
++
+     public void registerProgram(String path, Program prog, FlatProgramAPI api, DecompInterface decomp) {
++        path = normKey(path);
+         programs.put(path, prog);
+         flatApis.put(path, api);
+         decompilers.put(path, decomp);
+@@ -194,6 +199,7 @@ public class GhidraContext {
+      * Switch the active program context. All Ops classes will see the new program.
+      */
+     public void switchProgram(String path) {
++        path = normKey(path);
+         Program p = programs.get(path);
+         if (p == null) {
+             throw new IllegalArgumentException("Program not loaded: " + path);
