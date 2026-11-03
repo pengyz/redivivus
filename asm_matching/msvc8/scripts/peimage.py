@@ -114,6 +114,10 @@ class PEImage:
         if self._relocs is None:
             rva, size = self.dirs[5]
             out = set()
+            if rva == 0 or size == 0:
+                # PAL3 形：无基址重定位目录（rva=0=不存在，非偏移 0）——空目录护栏
+                self._relocs = out
+                return out
             p = self.offset(self.base + rva)
             end = p + size
             d = self.data
