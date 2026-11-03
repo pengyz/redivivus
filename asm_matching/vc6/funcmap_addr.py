@@ -4,6 +4,13 @@
 method=addr（比 docblock 证据制更机械=更稳）"""
 import argparse, json, os, struct
 
+def bare_name(n):
+    """键归一：MSVC6 mangled（?x@Cls@@...）/ 限定名（Cls::x）→ 裸名 x。"""
+    if n.startswith('?'):
+        n = n[1:].split('@')[0]
+    return n.split('::')[-1].split('@@')[0]
+
+
 def obj_symbols(path):
     """COFF obj 符号提取（stdlib only）：段内符号→符号名。"""
     syms = []
@@ -33,27 +40,39 @@ def main():
     ap.add_argument('--ref', required=True); ap.add_argument('--ann', required=True)
     ap.add_argument('--objdir', required=True); ap.add_argument('--out', required=True)
     a = ap.parse_args()
-    ann = json.load(open(a.ann)) if a.ann.endswith('.json') else {}
+    raw = json.load(open(a.ann))
+    # 三形通吃：pal3_names.json ({functions:[{address,name}]}) / functions.json (addr->{name}) / 混合
+    ann = {}
+    if isinstance(raw, dict) and isinstance(raw.get('functions'), list):
+        for e in raw['functions']:
+            if isinstance(e, dict) and e.get('address') and e.get('name'):
+                ann[e['address'].lower()] = {'name': e['name']}
+    elif isinstance(raw, dict):
+        for k, v in raw.items():
+            if isinstance(v, dict) and v.get('name'):
+                ann[k.lower()] = v
     rows, unmatched = [], 0
     objsyms = {}
     for fn in sorted(os.listdir(a.objdir)):
         if fn.endswith('.obj') or fn.endswith('.o'):
             for nm, val in obj_symbols(os.path.join(a.objdir, fn)):
-                objsyms.setdefault(nm, []).append((fn, val))
+                objsyms.setdefault(nm, []).append((fn, val, nm))
+                objsyms.setdefault(bare_name(nm), []).append((fn, val, nm))
     for ln in open(a.ref):
         p = ln.split('\t')
         if len(p) < 2 or p[0] == 'start': continue
         start, end = p[0], p[1]
         key = '0x' + start
         name = None
-        for k in (key, '0x0' + start):
+        for k in (key.lower(), key, '0x0' + start):
             if k in ann and isinstance(ann[k], dict):
                 name = ann[k].get('name'); break
         if not name: unmatched += 1; continue
-        hit = objsyms.get(name) or objsyms.get(name.lstrip('_'))
+        hit = objsyms.get(name) or objsyms.get(bare_name(name)) or objsyms.get(name.lstrip('_'))
         if not hit: unmatched += 1; continue
-        tu, val = hit[0]
-        rows.append((start, end, name, tu, name, 'addr', 'ann=%s' % key))
+        _obj, val, _mangled = hit[0]
+        tu = _obj[:-4] if _obj.endswith('.obj') else _obj   # ourslib f.key = tu|mangled（tu 无扩展名）
+        rows.append((start, end, name, tu, _mangled, 'addr', 'ann=%s' % key))
     with open(a.out, 'w') as fh:
         fh.write('start\tend\tname\ttu\tsymbol\tmethod\tdetail\n')
         for r in rows: fh.write('\t'.join(r) + '\n')

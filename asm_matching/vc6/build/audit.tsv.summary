@@ -1,0 +1,26 @@
+tree 7bc5e6b-dirty; compiler sp1; flags /O2 /Ob2 /Oi /Ot /Oy; D2Client/ /GS-; D2DDraw/ /GS-; D2Direct3D/ /GS-; D2Gdi/ /GS-; D2Glide/ /GS-; D2Launch/ /GS-; D2Launch/Engine/ ; D2MCPClient/ /GS-; D2Multi/ /GS-; D2Sound/ /GS-; D2Win/ /GS-; D2gfx/ /GS-; Fog/3rdparty/crashy /Y- /DWINSOCK_API_LINKAGE=DECLSPEC_IMPORT
+Without the C runtime: 1 of 1735 functions MATCH (0.06%), 38 of 366494 bytes (0.01%)
+  runtime left out: 0 functions (0 bytes): libmap pairs, the library run 00000000..00000000, import thunks, runtime.tsv
+  compiler EH code left out: 2 functions (20 bytes): __ehhandler stubs and the unwind funclets their FuncInfo names
+byte kinds of the headline total: 366494 bytes
+  kind whole            38   0.01% functions that compile to the original bytes (MATCH)
+  kind ident           482   0.13% already right, but the function still differs elsewhere
+  kind operand        1833   0.50% same instruction, other registers or offsets
+  kind differ        14827   4.05% instructions with no matching partner
+  kind noncode        3219   0.88% switch tables and padding in functions that still differ
+  kind uncompared   346095  94.43% original functions with no counterpart compared
+whole binary:
+original functions: 1737 (366514 bytes of code)
+mapped and compared: 74
+  MATCH                  1
+  REF_DIFF               0
+  INSN_MATCH             1
+  INSN_COUNT_MATCH       1
+  OUR+-N                71
+  QUARANTINE             0
+  MISSING                0
+matched code: 38 bytes (0.01% of the original)
+  of which the statically linked runtime (libmap.tsv): 0 compared (0 bytes), 0 MATCH (0 bytes)
+pairings by funcmap tier: addr 74
+globals seen at aligned instructions: 0, of which consistent 0 (datamap.tsv)
+self-check, names carrying their own address: 0 agree, 0 elsewhere
