@@ -5,3 +5,6 @@ compile-errors.txt
 sites2.tsv
 *.cpp.map
 /build/
+output/
+ghidra_proj/
+project/parser-errors.log

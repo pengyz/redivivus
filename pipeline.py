@@ -82,10 +82,12 @@ def stage_generate(p, tc):
     print('  daemon: cd thirdparty/ghidra-mcp && GHIDRA_HOME=%s node packages/cli/dist/bin.js &' % GHIDRA_HOME)
     print('  会话:   create_session{binaryPath: ghidra_proj/%s.gpr, programPath: %s}' % (
         p['ghidra']['project'], p['ghidra']['program']))
-    sh('cd %s && GHIDRA_PROJECT_DIR=%s GHIDRA_PROJECT_PATH=ghidra://localhost:8432/%s '
-       'GHIDRA_PROGRAM_PATH=%s GHIDRA_MCP_TOKEN=local-dev npx tsx run.ts' % (
-           os.path.join(HERE, 'thirdparty', 'ghidra-reconstruct'),
-           os.path.join(HERE, 'project'), p['ghidra']['project'], p['ghidra']['program']),
+    # 出码落位约定: cwd=车间根 ⇒ output/<TU>/<名>.cpp(.map)（派生可弃区，禁漂引擎目录）
+    sh('GHIDRA_PROJECT_DIR=%s GHIDRA_PROJECT_PATH=ghidra://localhost:8432/%s '
+       'GHIDRA_PROGRAM_PATH=%s GHIDRA_MCP_TOKEN=local-dev '
+       'npx tsx %s' % (
+           os.path.join(HERE, 'project'), p['ghidra']['project'], p['ghidra']['program'],
+           os.path.join(HERE, 'thirdparty', 'ghidra-reconstruct', 'run.ts')),
        cwd=HERE)
 
 
