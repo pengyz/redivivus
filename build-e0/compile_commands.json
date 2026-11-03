@@ -1,0 +1,42 @@
+[
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/CRect/CRect.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect/CRect.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect/CRect.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/GBENGINE.DLL/gbGeomNode.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL/gbGeomNode.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL/gbGeomNode.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/KERNEL32.DLL/KERNEL32.DLL.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL/KERNEL32.DLL.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL/KERNEL32.DLL.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/_unnamespaced.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/GBENGINE.DLL.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/GBENGINE.DLL.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/GBENGINE.DLL.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/KERNEL32.DLL.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/KERNEL32.DLL.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/KERNEL32.DLL.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/globals.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-e0",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/CRect -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/GBENGINE.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/KERNEL32.DLL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/switchD_004b4e1e/switchD_004b4e1e.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e/switchD_004b4e1e.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/switchD_004b4e1e/switchD_004b4e1e.cpp"
+}
+]

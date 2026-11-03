@@ -1,0 +1,72 @@
+[
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/Base.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Base.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Base.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/Derived.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Derived.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Derived.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/EXTERNAL/EXTERNAL.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL/EXTERNAL.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL/EXTERNAL.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/_unnamespaced.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/Base.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Base.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Base.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/Derived.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Derived.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Derived.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed.dir/globals/globals.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/Base.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Base.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Base.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/Derived.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Derived.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/Derived.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/EXTERNAL/EXTERNAL.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL/EXTERNAL.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL/EXTERNAL.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/_unnamespaced.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/_unnamespaced.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/globals/Base.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Base.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Base.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/globals/Derived.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Derived.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/Derived.cpp"
+},
+{
+  "directory": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/build-fx",
+  "command": "/usr/bin/i686-w64-mingw32-g++ -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/EXTERNAL -I/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals -w -fms-extensions -std=gnu++17 -o CMakeFiles/Reconstructed_exe.dir/globals/globals.cpp.obj -c /home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp",
+  "file": "/home/peng/workspace/PAL3Decomp/pal3-redivivus/thirdparty/ghidra-reconstruct/output/globals/globals.cpp"
+}
+]

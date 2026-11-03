@@ -1,0 +1,25 @@
+{
+ "version": 1,
+ "project": "FIXTURE",
+ "modules": {},
+ "typeOwnership": [
+  {
+   "type": "Vec3",
+   "header": "Vec3.h"
+  },
+  {
+   "type": "Complex",
+   "header": "Complex.h"
+  },
+  {
+   "type": "Derived",
+   "header": "Derived.h"
+  },
+  {
+   "type": "Base",
+   "header": "Base.h"
+  }
+ ],
+ "additionalSources": [],
+ "methodConversions": []
+}

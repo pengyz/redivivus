@@ -1,0 +1,3709 @@
+{
+ "version": 1,
+ "project": "PAL3",
+ "modules": {},
+ "typeOwnership": [
+  {
+   "type": "h3DPOBJECT",
+   "header": "h3DPOBJECT.h"
+  },
+  {
+   "type": "C3DSpark",
+   "header": "C3DSpark.h"
+  },
+  {
+   "type": "CCBAIWindow",
+   "header": "CCBAIWindow.h"
+  },
+  {
+   "type": "CUtil",
+   "header": "CUtil.h"
+  },
+  {
+   "type": "UIStaticFlex",
+   "header": "UIStaticFlex.h"
+  },
+  {
+   "type": "MUIDialogMgr",
+   "header": "MUIDialogMgr.h"
+  },
+  {
+   "type": "TryBlockMapEntry",
+   "header": "TryBlockMapEntry.h"
+  },
+  {
+   "type": "tagShowItem",
+   "header": "tagShowItem.h"
+  },
+  {
+   "type": "gbVisNode",
+   "header": "gbVisNode.h"
+  },
+  {
+   "type": "CCBParabolaWindow",
+   "header": "CCBParabolaWindow.h"
+  },
+  {
+   "type": "_D3DMATERIAL9",
+   "header": "_D3DMATERIAL9.h"
+  },
+  {
+   "type": "ObjParam",
+   "header": "ObjParam.h"
+  },
+  {
+   "type": "RoleTaskPool",
+   "header": "RoleTaskPool.h"
+  },
+  {
+   "type": "CMeteorChain",
+   "header": "CMeteorChain.h"
+  },
+  {
+   "type": "gbSurfaceDesc",
+   "header": "gbSurfaceDesc.h"
+  },
+  {
+   "type": "_D3DINDEXBUFFER_DESC",
+   "header": "_D3DINDEXBUFFER_DESC.h"
+  },
+  {
+   "type": "tag17A7BData",
+   "header": "tag17A7BData.h"
+  },
+  {
+   "type": "NavTile",
+   "header": "NavTile.h"
+  },
+  {
+   "type": "UIButton_UIBUTTON_STATE",
+   "header": "UIButton_UIBUTTON_STATE.h"
+  },
+  {
+   "type": "tagCPKTable",
+   "header": "tagCPKTable.h"
+  },
+  {
+   "type": "tagCamTask",
+   "header": "tagCamTask.h"
+  },
+  {
+   "type": "KeyFrame",
+   "header": "KeyFrame.h"
+  },
+  {
+   "type": "UIInventory",
+   "header": "UIInventory.h"
+  },
+  {
+   "type": "UITitle_JDHY",
+   "header": "UITitle_JDHY.h"
+  },
+  {
+   "type": "gbMeshData",
+   "header": "gbMeshData.h"
+  },
+  {
+   "type": "OpenFNWindow",
+   "header": "OpenFNWindow.h"
+  },
+  {
+   "type": "gbRain",
+   "header": "gbRain.h"
+  },
+  {
+   "type": "OpenSceneFile",
+   "header": "OpenSceneFile.h"
+  },
+  {
+   "type": "HBRUSH__",
+   "header": "HBRUSH__.h"
+  },
+  {
+   "type": "RGNDATAHEADER",
+   "header": "RGNDATAHEADER.h"
+  },
+  {
+   "type": "__unnamed",
+   "header": "__unnamed.h"
+  },
+  {
+   "type": "ARC_ArcHeader",
+   "header": "ARC_ArcHeader.h"
+  },
+  {
+   "type": "UICursor",
+   "header": "UICursor.h"
+  },
+  {
+   "type": "AStarPathFinder",
+   "header": "AStarPathFinder.h"
+  },
+  {
+   "type": "CameraSystem",
+   "header": "CameraSystem.h"
+  },
+  {
+   "type": "HINSTANCE__",
+   "header": "HINSTANCE__.h"
+  },
+  {
+   "type": "DPINFO",
+   "header": "DPINFO.h"
+  },
+  {
+   "type": "subPARAM",
+   "header": "subPARAM.h"
+  },
+  {
+   "type": "tagQuad",
+   "header": "tagQuad.h"
+  },
+  {
+   "type": "Comp_Donate_Detail",
+   "header": "Comp_Donate_Detail.h"
+  },
+  {
+   "type": "CCBAttackSequen",
+   "header": "CCBAttackSequen.h"
+  },
+  {
+   "type": "_D3DRECTPATCH_INFO",
+   "header": "_D3DRECTPATCH_INFO.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffQuad",
+   "header": "CTaskTpl_tagEffTaskParam_CEffQuad.h"
+  },
+  {
+   "type": "gbVertexPool",
+   "header": "gbVertexPool.h"
+  },
+  {
+   "type": "PlayerAtt",
+   "header": "PlayerAtt.h"
+  },
+  {
+   "type": "StringTable",
+   "header": "StringTable.h"
+  },
+  {
+   "type": "sg_emitter_data",
+   "header": "sg_emitter_data.h"
+  },
+  {
+   "type": "pcmwaveformat_tag",
+   "header": "pcmwaveformat_tag.h"
+  },
+  {
+   "type": "_RGNDATA",
+   "header": "_RGNDATA.h"
+  },
+  {
+   "type": "UIFrameWnd",
+   "header": "UIFrameWnd.h"
+  },
+  {
+   "type": "_DIACTIONFORMATA",
+   "header": "_DIACTIONFORMATA.h"
+  },
+  {
+   "type": "FontSortInfoObj",
+   "header": "FontSortInfoObj.h"
+  },
+  {
+   "type": "Actor",
+   "header": "Actor.h"
+  },
+  {
+   "type": "OpenNULLFile",
+   "header": "OpenNULLFile.h"
+  },
+  {
+   "type": "ScreenEffect",
+   "header": "ScreenEffect.h"
+  },
+  {
+   "type": "LinkerVersion",
+   "header": "LinkerVersion.h"
+  },
+  {
+   "type": "CG_Scene",
+   "header": "CG_Scene.h"
+  },
+  {
+   "type": "_D3DRASTER_STATUS",
+   "header": "_D3DRASTER_STATUS.h"
+  },
+  {
+   "type": "tagEffGroup",
+   "header": "tagEffGroup.h"
+  },
+  {
+   "type": "PlayerAtts",
+   "header": "PlayerAtts.h"
+  },
+  {
+   "type": "UIScrollBar",
+   "header": "UIScrollBar.h"
+  },
+  {
+   "type": "CEffSParticle",
+   "header": "CEffSParticle.h"
+  },
+  {
+   "type": "UIMap",
+   "header": "UIMap.h"
+  },
+  {
+   "type": "me_RoleState",
+   "header": "me_RoleState.h"
+  },
+  {
+   "type": "MXTransport",
+   "header": "MXTransport.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffExplosive",
+   "header": "CTaskTpl_tagEffTaskParam_CEffExplosive.h"
+  },
+  {
+   "type": "D3DXVECTOR4",
+   "header": "D3DXVECTOR4.h"
+  },
+  {
+   "type": "tag17A8Data",
+   "header": "tag17A8Data.h"
+  },
+  {
+   "type": "tagThread",
+   "header": "tagThread.h"
+  },
+  {
+   "type": "gbNodeMsgObj",
+   "header": "gbNodeMsgObj.h"
+  },
+  {
+   "type": "IMAGE_FILE_HEADER",
+   "header": "IMAGE_FILE_HEADER.h"
+  },
+  {
+   "type": "gbMixActInfo",
+   "header": "gbMixActInfo.h"
+  },
+  {
+   "type": "std",
+   "header": "std.h"
+  },
+  {
+   "type": "PalScriptWaitTimer",
+   "header": "PalScriptWaitTimer.h"
+  },
+  {
+   "type": "RC_ARG",
+   "header": "RC_ARG.h"
+  },
+  {
+   "type": "tagVA",
+   "header": "tagVA.h"
+  },
+  {
+   "type": "UIParabolaCtrl",
+   "header": "UIParabolaCtrl.h"
+  },
+  {
+   "type": "CFadeOutAlphaPolicy",
+   "header": "CFadeOutAlphaPolicy.h"
+  },
+  {
+   "type": "PalScriptProgressTimer",
+   "header": "PalScriptProgressTimer.h"
+  },
+  {
+   "type": "MU_SortFun",
+   "header": "MU_SortFun.h"
+  },
+  {
+   "type": "ARC_ComboAttack",
+   "header": "ARC_ComboAttack.h"
+  },
+  {
+   "type": "CUSTOMSHAPEVERTEX",
+   "header": "CUSTOMSHAPEVERTEX.h"
+  },
+  {
+   "type": "gbDropDesc",
+   "header": "gbDropDesc.h"
+  },
+  {
+   "type": "SceneInfo",
+   "header": "SceneInfo.h"
+  },
+  {
+   "type": "BINKIO",
+   "header": "BINKIO.h"
+  },
+  {
+   "type": "Note_Item",
+   "header": "Note_Item.h"
+  },
+  {
+   "type": "m_RoleState",
+   "header": "m_RoleState.h"
+  },
+  {
+   "type": "_Collvec",
+   "header": "_Collvec.h"
+  },
+  {
+   "type": "D3DDriverBug",
+   "header": "D3DDriverBug.h"
+  },
+  {
+   "type": "_IMAGE_DATA_DIRECTORY",
+   "header": "_IMAGE_DATA_DIRECTORY.h"
+  },
+  {
+   "type": "gbPrintFontMgr",
+   "header": "gbPrintFontMgr.h"
+  },
+  {
+   "type": "elelife_emitter_graph",
+   "header": "elelife_emitter_graph.h"
+  },
+  {
+   "type": "_D3DXPARAMETER_DESC",
+   "header": "_D3DXPARAMETER_DESC.h"
+  },
+  {
+   "type": "HKEY__",
+   "header": "HKEY__.h"
+  },
+  {
+   "type": "BARRIER",
+   "header": "BARRIER.h"
+  },
+  {
+   "type": "CScreenModeNode",
+   "header": "CScreenModeNode.h"
+  },
+  {
+   "type": "_Btn_BtnID",
+   "header": "_Btn_BtnID.h"
+  },
+  {
+   "type": "ObjLockInput",
+   "header": "ObjLockInput.h"
+  },
+  {
+   "type": "tagNewItem",
+   "header": "tagNewItem.h"
+  },
+  {
+   "type": "_CONTEXT",
+   "header": "_CONTEXT.h"
+  },
+  {
+   "type": "tagTaskSlotHeader",
+   "header": "tagTaskSlotHeader.h"
+  },
+  {
+   "type": "ArcLocale",
+   "header": "ArcLocale.h"
+  },
+  {
+   "type": "ScriptCounter",
+   "header": "ScriptCounter.h"
+  },
+  {
+   "type": "CatchableTypeArray",
+   "header": "CatchableTypeArray.h"
+  },
+  {
+   "type": "NavTriangle",
+   "header": "NavTriangle.h"
+  },
+  {
+   "type": "tagNMITEMACTIVATE",
+   "header": "tagNMITEMACTIVATE.h"
+  },
+  {
+   "type": "UIFrameContainer",
+   "header": "UIFrameContainer.h"
+  },
+  {
+   "type": "_DIDEVICEIMAGEINFOA",
+   "header": "_DIDEVICEIMAGEINFOA.h"
+  },
+  {
+   "type": "CResistanceMotionPolicy",
+   "header": "CResistanceMotionPolicy.h"
+  },
+  {
+   "type": "HDC__",
+   "header": "HDC__.h"
+  },
+  {
+   "type": "ARC_FightItem",
+   "header": "ARC_FightItem.h"
+  },
+  {
+   "type": "tagVAO",
+   "header": "tagVAO.h"
+  },
+  {
+   "type": "RoleFadeOut",
+   "header": "RoleFadeOut.h"
+  },
+  {
+   "type": "tagStageTask",
+   "header": "tagStageTask.h"
+  },
+  {
+   "type": "sg_particle",
+   "header": "sg_particle.h"
+  },
+  {
+   "type": "Parent_Data",
+   "header": "Parent_Data.h"
+  },
+  {
+   "type": "gbDynVertBuf",
+   "header": "gbDynVertBuf.h"
+  },
+  {
+   "type": "RoleCtrl",
+   "header": "RoleCtrl.h"
+  },
+  {
+   "type": "tagControlThread",
+   "header": "tagControlThread.h"
+  },
+  {
+   "type": "tagEffObjType",
+   "header": "tagEffObjType.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffCylinder",
+   "header": "CTaskTpl_tagEffTaskParam_CEffCylinder.h"
+  },
+  {
+   "type": "PalScriptAnimTimer",
+   "header": "PalScriptAnimTimer.h"
+  },
+  {
+   "type": "NameSys",
+   "header": "NameSys.h"
+  },
+  {
+   "type": "gbCamera",
+   "header": "gbCamera.h"
+  },
+  {
+   "type": "sg_emitter",
+   "header": "sg_emitter.h"
+  },
+  {
+   "type": "ArcLocaleMusic",
+   "header": "ArcLocaleMusic.h"
+  },
+  {
+   "type": "tagUITask",
+   "header": "tagUITask.h"
+  },
+  {
+   "type": "UITitle_XJTM",
+   "header": "UITitle_XJTM.h"
+  },
+  {
+   "type": "_D3DVERTEXBUFFER_DESC",
+   "header": "_D3DVERTEXBUFFER_DESC.h"
+  },
+  {
+   "type": "ArcHeader",
+   "header": "ArcHeader.h"
+  },
+  {
+   "type": "ScreenFadeWhite",
+   "header": "ScreenFadeWhite.h"
+  },
+  {
+   "type": "gbSphere",
+   "header": "gbSphere.h"
+  },
+  {
+   "type": "CTaskTpl",
+   "header": "CTaskTpl.h"
+  },
+  {
+   "type": "RELIVEPARAM",
+   "header": "RELIVEPARAM.h"
+  },
+  {
+   "type": "ScreenFadeWhite2",
+   "header": "ScreenFadeWhite2.h"
+  },
+  {
+   "type": "ArtistPlugIn",
+   "header": "ArtistPlugIn.h"
+  },
+  {
+   "type": "tagHeader",
+   "header": "tagHeader.h"
+  },
+  {
+   "type": "direction_emitter_graph",
+   "header": "direction_emitter_graph.h"
+  },
+  {
+   "type": "UIProgressBar",
+   "header": "UIProgressBar.h"
+  },
+  {
+   "type": "ScriptSystemData",
+   "header": "ScriptSystemData.h"
+  },
+  {
+   "type": "CCBControl",
+   "header": "CCBControl.h"
+  },
+  {
+   "type": "FightItemScriptBlock",
+   "header": "FightItemScriptBlock.h"
+  },
+  {
+   "type": "Role_SPECIAL_ACTION",
+   "header": "Role_SPECIAL_ACTION.h"
+  },
+  {
+   "type": "gbParticleUnit",
+   "header": "gbParticleUnit.h"
+  },
+  {
+   "type": "MvcController",
+   "header": "MvcController.h"
+  },
+  {
+   "type": "MeshFx",
+   "header": "MeshFx.h"
+  },
+  {
+   "type": "gbPrintFont",
+   "header": "gbPrintFont.h"
+  },
+  {
+   "type": "EffMultiPassNode",
+   "header": "EffMultiPassNode.h"
+  },
+  {
+   "type": "SoundContext",
+   "header": "SoundContext.h"
+  },
+  {
+   "type": "FLTSTAGE",
+   "header": "FLTSTAGE.h"
+  },
+  {
+   "type": "sg_emitter_sphere",
+   "header": "sg_emitter_sphere.h"
+  },
+  {
+   "type": "p_RoleState",
+   "header": "p_RoleState.h"
+  },
+  {
+   "type": "NPCInfo",
+   "header": "NPCInfo.h"
+  },
+  {
+   "type": "TimeCtl",
+   "header": "TimeCtl.h"
+  },
+  {
+   "type": "ARC_ArcMsic",
+   "header": "ARC_ArcMsic.h"
+  },
+  {
+   "type": "CEffBase",
+   "header": "CEffBase.h"
+  },
+  {
+   "type": "RoleCamera",
+   "header": "RoleCamera.h"
+  },
+  {
+   "type": "SaleUI_SortData",
+   "header": "SaleUI_SortData.h"
+  },
+  {
+   "type": "tagPlayerSet",
+   "header": "tagPlayerSet.h"
+  },
+  {
+   "type": "EffectItem",
+   "header": "EffectItem.h"
+  },
+  {
+   "type": "D3DXVECTOR3",
+   "header": "D3DXVECTOR3.h"
+  },
+  {
+   "type": "CIniFile",
+   "header": "CIniFile.h"
+  },
+  {
+   "type": "ColRet",
+   "header": "ColRet.h"
+  },
+  {
+   "type": "magic_tab",
+   "header": "magic_tab.h"
+  },
+  {
+   "type": "BINK",
+   "header": "BINK.h"
+  },
+  {
+   "type": "CEffCallBack",
+   "header": "CEffCallBack.h"
+  },
+  {
+   "type": "RoleFadeIn",
+   "header": "RoleFadeIn.h"
+  },
+  {
+   "type": "CParticleSystem",
+   "header": "CParticleSystem.h"
+  },
+  {
+   "type": "ScriptData",
+   "header": "ScriptData.h"
+  },
+  {
+   "type": "DIFILEEFFECT",
+   "header": "DIFILEEFFECT.h"
+  },
+  {
+   "type": "PalScriptMgr",
+   "header": "PalScriptMgr.h"
+  },
+  {
+   "type": "tagRoleTaskSlotsView",
+   "header": "tagRoleTaskSlotsView.h"
+  },
+  {
+   "type": "HMONITOR__",
+   "header": "HMONITOR__.h"
+  },
+  {
+   "type": "LINEUP_SEQUENCE",
+   "header": "LINEUP_SEQUENCE.h"
+  },
+  {
+   "type": "CCBRoleStatePanel",
+   "header": "CCBRoleStatePanel.h"
+  },
+  {
+   "type": "_D3DLIGHT9",
+   "header": "_D3DLIGHT9.h"
+  },
+  {
+   "type": "__old_sbh_page_struct",
+   "header": "__old_sbh_page_struct.h"
+  },
+  {
+   "type": "SaleUI",
+   "header": "SaleUI.h"
+  },
+  {
+   "type": "Object",
+   "header": "Object.h"
+  },
+  {
+   "type": "tagScriptCmd",
+   "header": "tagScriptCmd.h"
+  },
+  {
+   "type": "_IMAGE_FILE_HEADER",
+   "header": "_IMAGE_FILE_HEADER.h"
+  },
+  {
+   "type": "gbTagXBladeNode",
+   "header": "gbTagXBladeNode.h"
+  },
+  {
+   "type": "gbGfxDriverInfo",
+   "header": "gbGfxDriverInfo.h"
+  },
+  {
+   "type": "UIPar_TimeCtrl",
+   "header": "UIPar_TimeCtrl.h"
+  },
+  {
+   "type": "scCmdDef",
+   "header": "scCmdDef.h"
+  },
+  {
+   "type": "RotateObj",
+   "header": "RotateObj.h"
+  },
+  {
+   "type": "UITabCtrl",
+   "header": "UITabCtrl.h"
+  },
+  {
+   "type": "CEffGroupNode",
+   "header": "CEffGroupNode.h"
+  },
+  {
+   "type": "CEffgbParticle",
+   "header": "CEffgbParticle.h"
+  },
+  {
+   "type": "CPKFile",
+   "header": "CPKFile.h"
+  },
+  {
+   "type": "gbChain1D",
+   "header": "gbChain1D.h"
+  },
+  {
+   "type": "CEffShock",
+   "header": "CEffShock.h"
+  },
+  {
+   "type": "UIStaticFlex_State",
+   "header": "UIStaticFlex_State.h"
+  },
+  {
+   "type": "UIPushButton",
+   "header": "UIPushButton.h"
+  },
+  {
+   "type": "D3DDeviceInfo",
+   "header": "D3DDeviceInfo.h"
+  },
+  {
+   "type": "CCBResultWindow",
+   "header": "CCBResultWindow.h"
+  },
+  {
+   "type": "gbLight",
+   "header": "gbLight.h"
+  },
+  {
+   "type": "UILBItem",
+   "header": "UILBItem.h"
+  },
+  {
+   "type": "HICON__",
+   "header": "HICON__.h"
+  },
+  {
+   "type": "scUserVarInfo",
+   "header": "scUserVarInfo.h"
+  },
+  {
+   "type": "C3DSpark_tagSpark",
+   "header": "C3DSpark_tagSpark.h"
+  },
+  {
+   "type": "tagEffMgrData",
+   "header": "tagEffMgrData.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffAudio",
+   "header": "CTaskTpl_tagEffTaskParam_CEffAudio.h"
+  },
+  {
+   "type": "PalScriptBlendTimer",
+   "header": "PalScriptBlendTimer.h"
+  },
+  {
+   "type": "UILoadingFrm",
+   "header": "UILoadingFrm.h"
+  },
+  {
+   "type": "gbAnimScript",
+   "header": "gbAnimScript.h"
+  },
+  {
+   "type": "gbGfxManager",
+   "header": "gbGfxManager.h"
+  },
+  {
+   "type": "tagMeteor",
+   "header": "tagMeteor.h"
+  },
+  {
+   "type": "CEffTime",
+   "header": "CEffTime.h"
+  },
+  {
+   "type": "scVARIANT_data",
+   "header": "scVARIANT_data.h"
+  },
+  {
+   "type": "TxtFile",
+   "header": "TxtFile.h"
+  },
+  {
+   "type": "Comp_Donate",
+   "header": "Comp_Donate.h"
+  },
+  {
+   "type": "_DIDEVICEIMAGEINFOHEADERA",
+   "header": "_DIDEVICEIMAGEINFOHEADERA.h"
+  },
+  {
+   "type": "gbRenderEffect",
+   "header": "gbRenderEffect.h"
+  },
+  {
+   "type": "UITitle",
+   "header": "UITitle.h"
+  },
+  {
+   "type": "CG_Edit",
+   "header": "CG_Edit.h"
+  },
+  {
+   "type": "tagRGBQUAD",
+   "header": "tagRGBQUAD.h"
+  },
+  {
+   "type": "CEffModel",
+   "header": "CEffModel.h"
+  },
+  {
+   "type": "tagRoleTaskData",
+   "header": "tagRoleTaskData.h"
+  },
+  {
+   "type": "OpenBaseFile",
+   "header": "OpenBaseFile.h"
+  },
+  {
+   "type": "tagLoggerCallback",
+   "header": "tagLoggerCallback.h"
+  },
+  {
+   "type": "tagCOPYDATASTRUCT",
+   "header": "tagCOPYDATASTRUCT.h"
+  },
+  {
+   "type": "CTrail",
+   "header": "CTrail.h"
+  },
+  {
+   "type": "CCBControlWindow",
+   "header": "CCBControlWindow.h"
+  },
+  {
+   "type": "_s__CatchableTypeArray",
+   "header": "_s__CatchableTypeArray.h"
+  },
+  {
+   "type": "FightInfo",
+   "header": "FightInfo.h"
+  },
+  {
+   "type": "UICaption",
+   "header": "UICaption.h"
+  },
+  {
+   "type": "CParticleSystem_ParticleUnit",
+   "header": "CParticleSystem_ParticleUnit.h"
+  },
+  {
+   "type": "_FLOATING_SAVE_AREA",
+   "header": "_FLOATING_SAVE_AREA.h"
+  },
+  {
+   "type": "gbActorMgr",
+   "header": "gbActorMgr.h"
+  },
+  {
+   "type": "CCBUI_funcptr_t",
+   "header": "CCBUI_funcptr_t.h"
+  },
+  {
+   "type": "_D3DGAMMARAMP",
+   "header": "_D3DGAMMARAMP.h"
+  },
+  {
+   "type": "DIEFFECTINFOA",
+   "header": "DIEFFECTINFOA.h"
+  },
+  {
+   "type": "Average",
+   "header": "Average.h"
+  },
+  {
+   "type": "CEffExplosive",
+   "header": "CEffExplosive.h"
+  },
+  {
+   "type": "DealData",
+   "header": "DealData.h"
+  },
+  {
+   "type": "gbTextureArray",
+   "header": "gbTextureArray.h"
+  },
+  {
+   "type": "tagParam",
+   "header": "tagParam.h"
+  },
+  {
+   "type": "PurgeEffect",
+   "header": "PurgeEffect.h"
+  },
+  {
+   "type": "gbImage2D",
+   "header": "gbImage2D.h"
+  },
+  {
+   "type": "Math",
+   "header": "Math.h"
+  },
+  {
+   "type": "CEffCustomShape",
+   "header": "CEffCustomShape.h"
+  },
+  {
+   "type": "CEffTrackGrid",
+   "header": "CEffTrackGrid.h"
+  },
+  {
+   "type": "scVARIANT",
+   "header": "scVARIANT.h"
+  },
+  {
+   "type": "scAsmDecoder",
+   "header": "scAsmDecoder.h"
+  },
+  {
+   "type": "PathFinder",
+   "header": "PathFinder.h"
+  },
+  {
+   "type": "gbGfxCaps",
+   "header": "gbGfxCaps.h"
+  },
+  {
+   "type": "UIStaticEX",
+   "header": "UIStaticEX.h"
+  },
+  {
+   "type": "CCBSkillWindow",
+   "header": "CCBSkillWindow.h"
+  },
+  {
+   "type": "EH3_EXCEPTION_REGISTRATION",
+   "header": "EH3_EXCEPTION_REGISTRATION.h"
+  },
+  {
+   "type": "DIPROPDWORD",
+   "header": "DIPROPDWORD.h"
+  },
+  {
+   "type": "UIQuadManager",
+   "header": "UIQuadManager.h"
+  },
+  {
+   "type": "RenderTargetNode",
+   "header": "RenderTargetNode.h"
+  },
+  {
+   "type": "gbEmitterShape",
+   "header": "gbEmitterShape.h"
+  },
+  {
+   "type": "ScriptPoolPage",
+   "header": "ScriptPoolPage.h"
+  },
+  {
+   "type": "WeatherEffectNode",
+   "header": "WeatherEffectNode.h"
+  },
+  {
+   "type": "SkyBox",
+   "header": "SkyBox.h"
+  },
+  {
+   "type": "skill_tab",
+   "header": "skill_tab.h"
+  },
+  {
+   "type": "CSimplePosPolicy",
+   "header": "CSimplePosPolicy.h"
+  },
+  {
+   "type": "_D3DDEVICE_CREATION_PARAMETERS",
+   "header": "_D3DDEVICE_CREATION_PARAMETERS.h"
+  },
+  {
+   "type": "tagRoleTask",
+   "header": "tagRoleTask.h"
+  },
+  {
+   "type": "GlowObj",
+   "header": "GlowObj.h"
+  },
+  {
+   "type": "ARC_ArcLocaleRole",
+   "header": "ARC_ArcLocaleRole.h"
+  },
+  {
+   "type": "ARC_MonsterStar",
+   "header": "ARC_MonsterStar.h"
+  },
+  {
+   "type": "PalScriptWaitObj",
+   "header": "PalScriptWaitObj.h"
+  },
+  {
+   "type": "DIDEVCAPS",
+   "header": "DIDEVCAPS.h"
+  },
+  {
+   "type": "D3DXFLOAT16",
+   "header": "D3DXFLOAT16.h"
+  },
+  {
+   "type": "ArcPosition",
+   "header": "ArcPosition.h"
+  },
+  {
+   "type": "TaskMgr",
+   "header": "TaskMgr.h"
+  },
+  {
+   "type": "LineupPlank",
+   "header": "LineupPlank.h"
+  },
+  {
+   "type": "CLoad3DS",
+   "header": "CLoad3DS.h"
+  },
+  {
+   "type": "MIXSTAGE",
+   "header": "MIXSTAGE.h"
+  },
+  {
+   "type": "gbSingleton_gbGfxManager",
+   "header": "gbSingleton_gbGfxManager.h"
+  },
+  {
+   "type": "rterrmsgs",
+   "header": "rterrmsgs.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffCamera",
+   "header": "CTaskTpl_tagEffTaskParam_CEffCamera.h"
+  },
+  {
+   "type": "_D3DCLIPSTATUS9",
+   "header": "_D3DCLIPSTATUS9.h"
+  },
+  {
+   "type": "CCBDisplayChain",
+   "header": "CCBDisplayChain.h"
+  },
+  {
+   "type": "lconv",
+   "header": "lconv.h"
+  },
+  {
+   "type": "UIBigMap",
+   "header": "UIBigMap.h"
+  },
+  {
+   "type": "ArcSceneMonster",
+   "header": "ArcSceneMonster.h"
+  },
+  {
+   "type": "CameraCmd",
+   "header": "CameraCmd.h"
+  },
+  {
+   "type": "CEffQuake",
+   "header": "CEffQuake.h"
+  },
+  {
+   "type": "NPC",
+   "header": "NPC.h"
+  },
+  {
+   "type": "tagCCBStageData",
+   "header": "tagCCBStageData.h"
+  },
+  {
+   "type": "sCollision",
+   "header": "sCollision.h"
+  },
+  {
+   "type": "CCBPanelSlot",
+   "header": "CCBPanelSlot.h"
+  },
+  {
+   "type": "CameraCtrl",
+   "header": "CameraCtrl.h"
+  },
+  {
+   "type": "gbSoundData",
+   "header": "gbSoundData.h"
+  },
+  {
+   "type": "CCBCamControl",
+   "header": "CCBCamControl.h"
+  },
+  {
+   "type": "EquipUI",
+   "header": "EquipUI.h"
+  },
+  {
+   "type": "tagActionCommand",
+   "header": "tagActionCommand.h"
+  },
+  {
+   "type": "PolyLine",
+   "header": "PolyLine.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffGrid",
+   "header": "CTaskTpl_tagEffTaskParam_CEffGrid.h"
+  },
+  {
+   "type": "PalScriptFadeInTimer",
+   "header": "PalScriptFadeInTimer.h"
+  },
+  {
+   "type": "RoleTaskLine",
+   "header": "RoleTaskLine.h"
+  },
+  {
+   "type": "COLLIDE_DATA",
+   "header": "COLLIDE_DATA.h"
+  },
+  {
+   "type": "IMAGE_DATA_DIRECTORY",
+   "header": "IMAGE_DATA_DIRECTORY.h"
+  },
+  {
+   "type": "ARC_Inventory",
+   "header": "ARC_Inventory.h"
+  },
+  {
+   "type": "UITitle_BBTY",
+   "header": "UITitle_BBTY.h"
+  },
+  {
+   "type": "scScriptBlock",
+   "header": "scScriptBlock.h"
+  },
+  {
+   "type": "_D3DADAPTER_IDENTIFIER9",
+   "header": "_D3DADAPTER_IDENTIFIER9.h"
+  },
+  {
+   "type": "ObjectInfo",
+   "header": "ObjectInfo.h"
+  },
+  {
+   "type": "UIRenderObj",
+   "header": "UIRenderObj.h"
+  },
+  {
+   "type": "UITextArea",
+   "header": "UITextArea.h"
+  },
+  {
+   "type": "gbOBBox",
+   "header": "gbOBBox.h"
+  },
+  {
+   "type": "FILETIME",
+   "header": "FILETIME.h"
+  },
+  {
+   "type": "ScriptSystem",
+   "header": "ScriptSystem.h"
+  },
+  {
+   "type": "_EH3_EXCEPTION_REGISTRATION",
+   "header": "_EH3_EXCEPTION_REGISTRATION.h"
+  },
+  {
+   "type": "Reoccupy",
+   "header": "Reoccupy.h"
+  },
+  {
+   "type": "CParticleSystem_ParticleAttribute",
+   "header": "CParticleSystem_ParticleAttribute.h"
+  },
+  {
+   "type": "gbVec3D",
+   "header": "gbVec3D.h"
+  },
+  {
+   "type": "UIStaticFlip",
+   "header": "UIStaticFlip.h"
+  },
+  {
+   "type": "ArcPastScene",
+   "header": "ArcPastScene.h"
+  },
+  {
+   "type": "gbGammaRamp",
+   "header": "gbGammaRamp.h"
+  },
+  {
+   "type": "LineupUI",
+   "header": "LineupUI.h"
+  },
+  {
+   "type": "UIAnimateCtrl",
+   "header": "UIAnimateCtrl.h"
+  },
+  {
+   "type": "UIRoleSelect",
+   "header": "UIRoleSelect.h"
+  },
+  {
+   "type": "ParticleEffect",
+   "header": "ParticleEffect.h"
+  },
+  {
+   "type": "SceneObj_SubObj",
+   "header": "SceneObj_SubObj.h"
+  },
+  {
+   "type": "gbUIQuad",
+   "header": "gbUIQuad.h"
+  },
+  {
+   "type": "wavehdr_tag",
+   "header": "wavehdr_tag.h"
+  },
+  {
+   "type": "_DIG_DRIVER",
+   "header": "_DIG_DRIVER.h"
+  },
+  {
+   "type": "_D3DXEFFECT_DESC",
+   "header": "_D3DXEFFECT_DESC.h"
+  },
+  {
+   "type": "_DIDATAFORMAT",
+   "header": "_DIDATAFORMAT.h"
+  },
+  {
+   "type": "HWND__",
+   "header": "HWND__.h"
+  },
+  {
+   "type": "Camera",
+   "header": "Camera.h"
+  },
+  {
+   "type": "rotation_particle_graph",
+   "header": "rotation_particle_graph.h"
+  },
+  {
+   "type": "_s__CatchableType",
+   "header": "_s__CatchableType.h"
+  },
+  {
+   "type": "_SAMPLE",
+   "header": "_SAMPLE.h"
+  },
+  {
+   "type": "SceneProp",
+   "header": "SceneProp.h"
+  },
+  {
+   "type": "UIItem",
+   "header": "UIItem.h"
+  },
+  {
+   "type": "ArcScene",
+   "header": "ArcScene.h"
+  },
+  {
+   "type": "CCBAI",
+   "header": "CCBAI.h"
+  },
+  {
+   "type": "_Texture_Info",
+   "header": "_Texture_Info.h"
+  },
+  {
+   "type": "FuncInfoV1",
+   "header": "FuncInfoV1.h"
+  },
+  {
+   "type": "UISceneMap",
+   "header": "UISceneMap.h"
+  },
+  {
+   "type": "Logger",
+   "header": "Logger.h"
+  },
+  {
+   "type": "LineupComp",
+   "header": "LineupComp.h"
+  },
+  {
+   "type": "gbResManager",
+   "header": "gbResManager.h"
+  },
+  {
+   "type": "gbDropUnit",
+   "header": "gbDropUnit.h"
+  },
+  {
+   "type": "ScriptObj",
+   "header": "ScriptObj.h"
+  },
+  {
+   "type": "UIDragBar",
+   "header": "UIDragBar.h"
+  },
+  {
+   "type": "PalScriptSlotStateOverlay",
+   "header": "PalScriptSlotStateOverlay.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffSParticle",
+   "header": "CTaskTpl_tagEffTaskParam_CEffSParticle.h"
+  },
+  {
+   "type": "Triangle",
+   "header": "Triangle.h"
+  },
+  {
+   "type": "ARC_RoleAtt",
+   "header": "ARC_RoleAtt.h"
+  },
+  {
+   "type": "_Cvtvec",
+   "header": "_Cvtvec.h"
+  },
+  {
+   "type": "CCBStage",
+   "header": "CCBStage.h"
+  },
+  {
+   "type": "FrameTex",
+   "header": "FrameTex.h"
+  },
+  {
+   "type": "SceOpcodeEntry",
+   "header": "SceOpcodeEntry.h"
+  },
+  {
+   "type": "CPolicy",
+   "header": "CPolicy.h"
+  },
+  {
+   "type": "VideoPlayer",
+   "header": "VideoPlayer.h"
+  },
+  {
+   "type": "_TypeDescriptor",
+   "header": "_TypeDescriptor.h"
+  },
+  {
+   "type": "_D3DDISPLAYMODE",
+   "header": "_D3DDISPLAYMODE.h"
+  },
+  {
+   "type": "CCentripetalPolicy",
+   "header": "CCentripetalPolicy.h"
+  },
+  {
+   "type": "_IMAGE_OPTIONAL_HEADER",
+   "header": "_IMAGE_OPTIONAL_HEADER.h"
+  },
+  {
+   "type": "CEffectSimple",
+   "header": "CEffectSimple.h"
+  },
+  {
+   "type": "ProtectPanel",
+   "header": "ProtectPanel.h"
+  },
+  {
+   "type": "CCBTaskSlot",
+   "header": "CCBTaskSlot.h"
+  },
+  {
+   "type": "tagFormationSceneState",
+   "header": "tagFormationSceneState.h"
+  },
+  {
+   "type": "CCBStageEffect",
+   "header": "CCBStageEffect.h"
+  },
+  {
+   "type": "COnceFramePolicy",
+   "header": "COnceFramePolicy.h"
+  },
+  {
+   "type": "tagPartyInitView",
+   "header": "tagPartyInitView.h"
+  },
+  {
+   "type": "UIGroupCtrl",
+   "header": "UIGroupCtrl.h"
+  },
+  {
+   "type": "CameraParam",
+   "header": "CameraParam.h"
+  },
+  {
+   "type": "scGlobalUserVar",
+   "header": "scGlobalUserVar.h"
+  },
+  {
+   "type": "tagStageSubTask",
+   "header": "tagStageSubTask.h"
+  },
+  {
+   "type": "ORect",
+   "header": "ORect.h"
+  },
+  {
+   "type": "gbDropGroup",
+   "header": "gbDropGroup.h"
+  },
+  {
+   "type": "Array",
+   "header": "Array.h"
+  },
+  {
+   "type": "SystemUI",
+   "header": "SystemUI.h"
+  },
+  {
+   "type": "_SUBMAP",
+   "header": "_SUBMAP.h"
+  },
+  {
+   "type": "UIAnimateCtrlEX",
+   "header": "UIAnimateCtrlEX.h"
+  },
+  {
+   "type": "DIENVELOPE",
+   "header": "DIENVELOPE.h"
+  },
+  {
+   "type": "gbNodeMsgPayload",
+   "header": "gbNodeMsgPayload.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffAction",
+   "header": "CTaskTpl_tagEffTaskParam_CEffAction.h"
+  },
+  {
+   "type": "gbVertPoolMgr",
+   "header": "gbVertPoolMgr.h"
+  },
+  {
+   "type": "scScriptInstance",
+   "header": "scScriptInstance.h"
+  },
+  {
+   "type": "s_SpecialPropItem",
+   "header": "s_SpecialPropItem.h"
+  },
+  {
+   "type": "gbVFile1",
+   "header": "gbVFile1.h"
+  },
+  {
+   "type": "gbVolumeModifier",
+   "header": "gbVolumeModifier.h"
+  },
+  {
+   "type": "CEffAction",
+   "header": "CEffAction.h"
+  },
+  {
+   "type": "gbAudioManager",
+   "header": "gbAudioManager.h"
+  },
+  {
+   "type": "tagPALETTEENTRY",
+   "header": "tagPALETTEENTRY.h"
+  },
+  {
+   "type": "tagEffLinker",
+   "header": "tagEffLinker.h"
+  },
+  {
+   "type": "SceneObj",
+   "header": "SceneObj.h"
+  },
+  {
+   "type": "tagOFNA",
+   "header": "tagOFNA.h"
+  },
+  {
+   "type": "FindArc",
+   "header": "FindArc.h"
+  },
+  {
+   "type": "tagControlData",
+   "header": "tagControlData.h"
+  },
+  {
+   "type": "DealUI",
+   "header": "DealUI.h"
+  },
+  {
+   "type": "FightSkill",
+   "header": "FightSkill.h"
+  },
+  {
+   "type": "MainPropUI",
+   "header": "MainPropUI.h"
+  },
+  {
+   "type": "_strflt",
+   "header": "_strflt.h"
+  },
+  {
+   "type": "CArrayList",
+   "header": "CArrayList.h"
+  },
+  {
+   "type": "D3DXPlane",
+   "header": "D3DXPlane.h"
+  },
+  {
+   "type": "gbSingleton<gbGfxManager>",
+   "header": "gbSingleton<gbGfxManager>.h"
+  },
+  {
+   "type": "gbColorFlt",
+   "header": "gbColorFlt.h"
+  },
+  {
+   "type": "gbEffectMgr",
+   "header": "gbEffectMgr.h"
+  },
+  {
+   "type": "MagicUI",
+   "header": "MagicUI.h"
+  },
+  {
+   "type": "_D3DRECT",
+   "header": "_D3DRECT.h"
+  },
+  {
+   "type": "CCBMagicWindow",
+   "header": "CCBMagicWindow.h"
+  },
+  {
+   "type": "tChunk",
+   "header": "tChunk.h"
+  },
+  {
+   "type": "gbGeomQuad",
+   "header": "gbGeomQuad.h"
+  },
+  {
+   "type": "tagRoleSlot",
+   "header": "tagRoleSlot.h"
+  },
+  {
+   "type": "sg_customshape",
+   "header": "sg_customshape.h"
+  },
+  {
+   "type": "StateUI",
+   "header": "StateUI.h"
+  },
+  {
+   "type": "GeomNode",
+   "header": "GeomNode.h"
+  },
+  {
+   "type": "Param0",
+   "header": "Param0.h"
+  },
+  {
+   "type": "Scene",
+   "header": "Scene.h"
+  },
+  {
+   "type": "SceneMap",
+   "header": "SceneMap.h"
+  },
+  {
+   "type": "gbVec2D",
+   "header": "gbVec2D.h"
+  },
+  {
+   "type": "gbClearParam",
+   "header": "gbClearParam.h"
+  },
+  {
+   "type": "C2DSpark",
+   "header": "C2DSpark.h"
+  },
+  {
+   "type": "ScriptHelper",
+   "header": "ScriptHelper.h"
+  },
+  {
+   "type": "gbPixelFormat",
+   "header": "gbPixelFormat.h"
+  },
+  {
+   "type": "_D3DCOLORVALUE",
+   "header": "_D3DCOLORVALUE.h"
+  },
+  {
+   "type": "String",
+   "header": "String.h"
+  },
+  {
+   "type": "CEffAudio",
+   "header": "CEffAudio.h"
+  },
+  {
+   "type": "gbSceneNode",
+   "header": "gbSceneNode.h"
+  },
+  {
+   "type": "UISystem",
+   "header": "UISystem.h"
+  },
+  {
+   "type": "EffectInfo",
+   "header": "EffectInfo.h"
+  },
+  {
+   "type": "ARC_OutFile",
+   "header": "ARC_OutFile.h"
+  },
+  {
+   "type": "SceneObjParam",
+   "header": "SceneObjParam.h"
+  },
+  {
+   "type": "HWAVEOUT__",
+   "header": "HWAVEOUT__.h"
+  },
+  {
+   "type": "OutFile",
+   "header": "OutFile.h"
+  },
+  {
+   "type": "UIDialog",
+   "header": "UIDialog.h"
+  },
+  {
+   "type": "PAL_GDB",
+   "header": "PAL_GDB.h"
+  },
+  {
+   "type": "_D3DPSHADERCAPS2_0",
+   "header": "_D3DPSHADERCAPS2_0.h"
+  },
+  {
+   "type": "MXCEft",
+   "header": "MXCEft.h"
+  },
+  {
+   "type": "tagUVSet",
+   "header": "tagUVSet.h"
+  },
+  {
+   "type": "HeadMsg",
+   "header": "HeadMsg.h"
+  },
+  {
+   "type": "RenderTarget4",
+   "header": "RenderTarget4.h"
+  },
+  {
+   "type": "sg_particle_data",
+   "header": "sg_particle_data.h"
+  },
+  {
+   "type": "UIStaticEXA",
+   "header": "UIStaticEXA.h"
+  },
+  {
+   "type": "_EXCEPTION_RECORD",
+   "header": "_EXCEPTION_RECORD.h"
+  },
+  {
+   "type": "AudioContext",
+   "header": "AudioContext.h"
+  },
+  {
+   "type": "gbEmitterSquare",
+   "header": "gbEmitterSquare.h"
+  },
+  {
+   "type": "gbTexture",
+   "header": "gbTexture.h"
+  },
+  {
+   "type": "_D3DXTECHNIQUE_DESC",
+   "header": "_D3DXTECHNIQUE_DESC.h"
+  },
+  {
+   "type": "EffCallBackNode",
+   "header": "EffCallBackNode.h"
+  },
+  {
+   "type": "JusticeBookUI",
+   "header": "JusticeBookUI.h"
+  },
+  {
+   "type": "Comp_DonateUI",
+   "header": "Comp_DonateUI.h"
+  },
+  {
+   "type": "LayerNode",
+   "header": "LayerNode.h"
+  },
+  {
+   "type": "ArcBrief",
+   "header": "ArcBrief.h"
+  },
+  {
+   "type": "_UIPOS",
+   "header": "_UIPOS.h"
+  },
+  {
+   "type": "UIRoleSelectDialog",
+   "header": "UIRoleSelectDialog.h"
+  },
+  {
+   "type": "_ADPCMDATATAG",
+   "header": "_ADPCMDATATAG.h"
+  },
+  {
+   "type": "_Texture_uv",
+   "header": "_Texture_uv.h"
+  },
+  {
+   "type": "Iostream_init",
+   "header": "Iostream_init.h"
+  },
+  {
+   "type": "GeomNote",
+   "header": "GeomNote.h"
+  },
+  {
+   "type": "gbIndexPool",
+   "header": "gbIndexPool.h"
+  },
+  {
+   "type": "ARC_ArcBrief",
+   "header": "ARC_ArcBrief.h"
+  },
+  {
+   "type": "_Console__ConCmd",
+   "header": "_Console__ConCmd.h"
+  },
+  {
+   "type": "gbParticleEffect",
+   "header": "gbParticleEffect.h"
+  },
+  {
+   "type": "gbMatrixStack",
+   "header": "gbMatrixStack.h"
+  },
+  {
+   "type": "UIScenePanel",
+   "header": "UIScenePanel.h"
+  },
+  {
+   "type": "CCBStageCam",
+   "header": "CCBStageCam.h"
+  },
+  {
+   "type": "RoleSystem",
+   "header": "RoleSystem.h"
+  },
+  {
+   "type": "ConfigFile",
+   "header": "ConfigFile.h"
+  },
+  {
+   "type": "CEffTrackCustomShape",
+   "header": "CEffTrackCustomShape.h"
+  },
+  {
+   "type": "MainEquipUI",
+   "header": "MainEquipUI.h"
+  },
+  {
+   "type": "st_Manager",
+   "header": "st_Manager.h"
+  },
+  {
+   "type": "CCCTData",
+   "header": "CCCTData.h"
+  },
+  {
+   "type": "UIWnd",
+   "header": "UIWnd.h"
+  },
+  {
+   "type": "sg_particle_scene",
+   "header": "sg_particle_scene.h"
+  },
+  {
+   "type": "ASISTAGE",
+   "header": "ASISTAGE.h"
+  },
+  {
+   "type": "Param1",
+   "header": "Param1.h"
+  },
+  {
+   "type": "ARC_PlayerMgrInfo",
+   "header": "ARC_PlayerMgrInfo.h"
+  },
+  {
+   "type": "sizemulti_emitter_graph",
+   "header": "sizemulti_emitter_graph.h"
+  },
+  {
+   "type": "_PMD",
+   "header": "_PMD.h"
+  },
+  {
+   "type": "D3DXMATRIX",
+   "header": "D3DXMATRIX.h"
+  },
+  {
+   "type": "Archive",
+   "header": "Archive.h"
+  },
+  {
+   "type": "PtrArray",
+   "header": "PtrArray.h"
+  },
+  {
+   "type": "SceneVisNode",
+   "header": "SceneVisNode.h"
+  },
+  {
+   "type": "XJ_Pic",
+   "header": "XJ_Pic.h"
+  },
+  {
+   "type": "CEffMeteor",
+   "header": "CEffMeteor.h"
+  },
+  {
+   "type": "tagTaskVecXYZ",
+   "header": "tagTaskVecXYZ.h"
+  },
+  {
+   "type": "_D3DVECTOR",
+   "header": "_D3DVECTOR.h"
+  },
+  {
+   "type": "UIParticle",
+   "header": "UIParticle.h"
+  },
+  {
+   "type": "_cpinfo",
+   "header": "_cpinfo.h"
+  },
+  {
+   "type": "UIAnimate",
+   "header": "UIAnimate.h"
+  },
+  {
+   "type": "gbKeyControler",
+   "header": "gbKeyControler.h"
+  },
+  {
+   "type": "UI3DModelNode",
+   "header": "UI3DModelNode.h"
+  },
+  {
+   "type": "UIObj",
+   "header": "UIObj.h"
+  },
+  {
+   "type": "UIListBox",
+   "header": "UIListBox.h"
+  },
+  {
+   "type": "ArcLocaleRole",
+   "header": "ArcLocaleRole.h"
+  },
+  {
+   "type": "_D3DSURFACE_DESC",
+   "header": "_D3DSURFACE_DESC.h"
+  },
+  {
+   "type": "UIButtonEXA",
+   "header": "UIButtonEXA.h"
+  },
+  {
+   "type": "SceneMapObj",
+   "header": "SceneMapObj.h"
+  },
+  {
+   "type": "MiniGame3",
+   "header": "MiniGame3.h"
+  },
+  {
+   "type": "UIStatic",
+   "header": "UIStatic.h"
+  },
+  {
+   "type": "_ThrowInfo",
+   "header": "_ThrowInfo.h"
+  },
+  {
+   "type": "CFadeColorPolicy",
+   "header": "CFadeColorPolicy.h"
+  },
+  {
+   "type": "CEffectBubble",
+   "header": "CEffectBubble.h"
+  },
+  {
+   "type": "gbCursorRes",
+   "header": "gbCursorRes.h"
+  },
+  {
+   "type": "tagEntry",
+   "header": "tagEntry.h"
+  },
+  {
+   "type": "UIStaticRM",
+   "header": "UIStaticRM.h"
+  },
+  {
+   "type": "_UDACCEL",
+   "header": "_UDACCEL.h"
+  },
+  {
+   "type": "CCBRoleStatePanelM",
+   "header": "CCBRoleStatePanelM.h"
+  },
+  {
+   "type": "CEffectSystem",
+   "header": "CEffectSystem.h"
+  },
+  {
+   "type": "_Ctypevec",
+   "header": "_Ctypevec.h"
+  },
+  {
+   "type": "tagTCITEMA",
+   "header": "tagTCITEMA.h"
+  },
+  {
+   "type": "DisplayConfig",
+   "header": "DisplayConfig.h"
+  },
+  {
+   "type": "CCBStageShadow",
+   "header": "CCBStageShadow.h"
+  },
+  {
+   "type": "localVar0",
+   "header": "localVar0.h"
+  },
+  {
+   "type": "_Tex_uv",
+   "header": "_Tex_uv.h"
+  },
+  {
+   "type": "tagCombatTaskData",
+   "header": "tagCombatTaskData.h"
+  },
+  {
+   "type": "doubleint",
+   "header": "doubleint.h"
+  },
+  {
+   "type": "_DICOLORSET",
+   "header": "_DICOLORSET.h"
+  },
+  {
+   "type": "CEffTrackCylinder",
+   "header": "CEffTrackCylinder.h"
+  },
+  {
+   "type": "ScriptVM",
+   "header": "ScriptVM.h"
+  },
+  {
+   "type": "BillBoardFace",
+   "header": "BillBoardFace.h"
+  },
+  {
+   "type": "rgbcolor_particle_graph",
+   "header": "rgbcolor_particle_graph.h"
+  },
+  {
+   "type": "gbColorQuad",
+   "header": "gbColorQuad.h"
+  },
+  {
+   "type": "gbVolModNode",
+   "header": "gbVolModNode.h"
+  },
+  {
+   "type": "D3DAdapterInfo",
+   "header": "D3DAdapterInfo.h"
+  },
+  {
+   "type": "PalScriptIdleObj",
+   "header": "PalScriptIdleObj.h"
+  },
+  {
+   "type": "Glow",
+   "header": "Glow.h"
+  },
+  {
+   "type": "tagPartical",
+   "header": "tagPartical.h"
+  },
+  {
+   "type": "BtnGroup",
+   "header": "BtnGroup.h"
+  },
+  {
+   "type": "RenderTarget3",
+   "header": "RenderTarget3.h"
+  },
+  {
+   "type": "SCNFile",
+   "header": "SCNFile.h"
+  },
+  {
+   "type": "_CLOUD",
+   "header": "_CLOUD.h"
+  },
+  {
+   "type": "BINKRECT",
+   "header": "BINKRECT.h"
+  },
+  {
+   "type": "gbTexture_D3D",
+   "header": "gbTexture_D3D.h"
+  },
+  {
+   "type": "CFadeInAlphaPolicy",
+   "header": "CFadeInAlphaPolicy.h"
+  },
+  {
+   "type": "gbLightObj",
+   "header": "gbLightObj.h"
+  },
+  {
+   "type": "TextureLibDataBase",
+   "header": "TextureLibDataBase.h"
+  },
+  {
+   "type": "tagStageRoleData",
+   "header": "tagStageRoleData.h"
+  },
+  {
+   "type": "UICoverFrm",
+   "header": "UICoverFrm.h"
+  },
+  {
+   "type": "exception",
+   "header": "exception.h"
+  },
+  {
+   "type": "MyMdl",
+   "header": "MyMdl.h"
+  },
+  {
+   "type": "_FLOORPARAM",
+   "header": "_FLOORPARAM.h"
+  },
+  {
+   "type": "gbResource",
+   "header": "gbResource.h"
+  },
+  {
+   "type": "scVarStack",
+   "header": "scVarStack.h"
+  },
+  {
+   "type": "UIStaticCB",
+   "header": "UIStaticCB.h"
+  },
+  {
+   "type": "SwitchVariable",
+   "header": "SwitchVariable.h"
+  },
+  {
+   "type": "UIListView",
+   "header": "UIListView.h"
+  },
+  {
+   "type": "gbGfxManager_D3D",
+   "header": "gbGfxManager_D3D.h"
+  },
+  {
+   "type": "gbImage2DInfo",
+   "header": "gbImage2DInfo.h"
+  },
+  {
+   "type": "gbMeshSection",
+   "header": "gbMeshSection.h"
+  },
+  {
+   "type": "RoleStatePanel",
+   "header": "RoleStatePanel.h"
+  },
+  {
+   "type": "SkyboxEff",
+   "header": "SkyboxEff.h"
+  },
+  {
+   "type": "UIButton",
+   "header": "UIButton.h"
+  },
+  {
+   "type": "RestScript",
+   "header": "RestScript.h"
+  },
+  {
+   "type": "CEffMgr",
+   "header": "CEffMgr.h"
+  },
+  {
+   "type": "UISceneObj",
+   "header": "UISceneObj.h"
+  },
+  {
+   "type": "BUNDLEPOINTERS",
+   "header": "BUNDLEPOINTERS.h"
+  },
+  {
+   "type": "gbMaterial",
+   "header": "gbMaterial.h"
+  },
+  {
+   "type": "UIPar_Star",
+   "header": "UIPar_Star.h"
+  },
+  {
+   "type": "tagDemand",
+   "header": "tagDemand.h"
+  },
+  {
+   "type": "_better_note",
+   "header": "_better_note.h"
+  },
+  {
+   "type": "tagC10Data",
+   "header": "tagC10Data.h"
+  },
+  {
+   "type": "_D3DXPASS_DESC",
+   "header": "_D3DXPASS_DESC.h"
+  },
+  {
+   "type": "SCNHeader",
+   "header": "SCNHeader.h"
+  },
+  {
+   "type": "CEffBink",
+   "header": "CEffBink.h"
+  },
+  {
+   "type": "CCBItemWindow",
+   "header": "CCBItemWindow.h"
+  },
+  {
+   "type": "_D3DVIEWPORT9",
+   "header": "_D3DVIEWPORT9.h"
+  },
+  {
+   "type": "tagRoleState",
+   "header": "tagRoleState.h"
+  },
+  {
+   "type": "CEffQuad",
+   "header": "CEffQuad.h"
+  },
+  {
+   "type": "TaskMgr_SceneObjParam_SceneObj",
+   "header": "TaskMgr_SceneObjParam_SceneObj.h"
+  },
+  {
+   "type": "NMHDR",
+   "header": "NMHDR.h"
+  },
+  {
+   "type": "TextureLib_Data",
+   "header": "TextureLib_Data.h"
+  },
+  {
+   "type": "UIFlexBar",
+   "header": "UIFlexBar.h"
+  },
+  {
+   "type": "CEffTrackModel",
+   "header": "CEffTrackModel.h"
+  },
+  {
+   "type": "gbViewPort",
+   "header": "gbViewPort.h"
+  },
+  {
+   "type": "CEffTrackQuad",
+   "header": "CEffTrackQuad.h"
+  },
+  {
+   "type": "UIButtonEX",
+   "header": "UIButtonEX.h"
+  },
+  {
+   "type": "_MapElement",
+   "header": "_MapElement.h"
+  },
+  {
+   "type": "BINKSND",
+   "header": "BINKSND.h"
+  },
+  {
+   "type": "CD3DSettings",
+   "header": "CD3DSettings.h"
+  },
+  {
+   "type": "_D3DMATRIX",
+   "header": "_D3DMATRIX.h"
+  },
+  {
+   "type": "D3DXCOLOR",
+   "header": "D3DXCOLOR.h"
+  },
+  {
+   "type": "MatrixStack",
+   "header": "MatrixStack.h"
+  },
+  {
+   "type": "SkyboxEffMgr",
+   "header": "SkyboxEffMgr.h"
+  },
+  {
+   "type": "localVar1",
+   "header": "localVar1.h"
+  },
+  {
+   "type": "CReBackFramePolicy",
+   "header": "CReBackFramePolicy.h"
+  },
+  {
+   "type": "SceHeader",
+   "header": "SceHeader.h"
+  },
+  {
+   "type": "MXFire",
+   "header": "MXFire.h"
+  },
+  {
+   "type": "UIGameFrm",
+   "header": "UIGameFrm.h"
+  },
+  {
+   "type": "CPK",
+   "header": "CPK.h"
+  },
+  {
+   "type": "CEffTemplate",
+   "header": "CEffTemplate.h"
+  },
+  {
+   "type": "tagEffSParticleSys",
+   "header": "tagEffSParticleSys.h"
+  },
+  {
+   "type": "Combat",
+   "header": "Combat.h"
+  },
+  {
+   "type": "_RGNDATAHEADER",
+   "header": "_RGNDATAHEADER.h"
+  },
+  {
+   "type": "gbQuaternion",
+   "header": "gbQuaternion.h"
+  },
+  {
+   "type": "gbSound3DNode",
+   "header": "gbSound3DNode.h"
+  },
+  {
+   "type": "gbPartEmitter",
+   "header": "gbPartEmitter.h"
+  },
+  {
+   "type": "_IMAGE_DOS_HEADER",
+   "header": "_IMAGE_DOS_HEADER.h"
+  },
+  {
+   "type": "SceneMapPlayer",
+   "header": "SceneMapPlayer.h"
+  },
+  {
+   "type": "UICamera",
+   "header": "UICamera.h"
+  },
+  {
+   "type": "TileMap",
+   "header": "TileMap.h"
+  },
+  {
+   "type": "Param2",
+   "header": "Param2.h"
+  },
+  {
+   "type": "C2DSpark_tagSpark",
+   "header": "C2DSpark_tagSpark.h"
+  },
+  {
+   "type": "tagImbibeNimbus",
+   "header": "tagImbibeNimbus.h"
+  },
+  {
+   "type": "FLOATING_SAVE_AREA",
+   "header": "FLOATING_SAVE_AREA.h"
+  },
+  {
+   "type": "gbCamControler",
+   "header": "gbCamControler.h"
+  },
+  {
+   "type": "elerandvec_emitter_graph",
+   "header": "elerandvec_emitter_graph.h"
+  },
+  {
+   "type": "SoundItem",
+   "header": "SoundItem.h"
+  },
+  {
+   "type": "MiniGame2Scene",
+   "header": "MiniGame2Scene.h"
+  },
+  {
+   "type": "CG_UI",
+   "header": "CG_UI.h"
+  },
+  {
+   "type": "ARC_Reoccupy",
+   "header": "ARC_Reoccupy.h"
+  },
+  {
+   "type": "gbActorExpNode",
+   "header": "gbActorExpNode.h"
+  },
+  {
+   "type": "tagRoleTaskVec3View",
+   "header": "tagRoleTaskVec3View.h"
+  },
+  {
+   "type": "RoleSystemTeamSlotOverlay",
+   "header": "RoleSystemTeamSlotOverlay.h"
+  },
+  {
+   "type": "t3DModel",
+   "header": "t3DModel.h"
+  },
+  {
+   "type": "PlayerItem",
+   "header": "PlayerItem.h"
+  },
+  {
+   "type": "NavHeader",
+   "header": "NavHeader.h"
+  },
+  {
+   "type": "tagExplosive",
+   "header": "tagExplosive.h"
+  },
+  {
+   "type": "waveformat_tag",
+   "header": "waveformat_tag.h"
+  },
+  {
+   "type": "ArcSceneObject",
+   "header": "ArcSceneObject.h"
+  },
+  {
+   "type": "UIChatRest",
+   "header": "UIChatRest.h"
+  },
+  {
+   "type": "CEffTrackSParticle",
+   "header": "CEffTrackSParticle.h"
+  },
+  {
+   "type": "tagScriptPtrQuad",
+   "header": "tagScriptPtrQuad.h"
+  },
+  {
+   "type": "tagCCT",
+   "header": "tagCCT.h"
+  },
+  {
+   "type": "InputSystem",
+   "header": "InputSystem.h"
+  },
+  {
+   "type": "RotateInvObj",
+   "header": "RotateInvObj.h"
+  },
+  {
+   "type": "PlayerSkill",
+   "header": "PlayerSkill.h"
+  },
+  {
+   "type": "CCBRoleStatePanelS",
+   "header": "CCBRoleStatePanelS.h"
+  },
+  {
+   "type": "tagTaskLayoutPtrs",
+   "header": "tagTaskLayoutPtrs.h"
+  },
+  {
+   "type": "ARC_PAL_GDB",
+   "header": "ARC_PAL_GDB.h"
+  },
+  {
+   "type": "filebuf",
+   "header": "filebuf.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffBink",
+   "header": "CTaskTpl_tagEffTaskParam_CEffBink.h"
+  },
+  {
+   "type": "CEffGrid",
+   "header": "CEffGrid.h"
+  },
+  {
+   "type": "tagNMHDR",
+   "header": "tagNMHDR.h"
+  },
+  {
+   "type": "CCBTaskSlot280",
+   "header": "CCBTaskSlot280.h"
+  },
+  {
+   "type": "_D3DXFUNCTION_DESC",
+   "header": "_D3DXFUNCTION_DESC.h"
+  },
+  {
+   "type": "tagEffTaskParam",
+   "header": "tagEffTaskParam.h"
+  },
+  {
+   "type": "_D3DXSEMANTIC",
+   "header": "_D3DXSEMANTIC.h"
+  },
+  {
+   "type": "tFace",
+   "header": "tFace.h"
+  },
+  {
+   "type": "UISceneFrm",
+   "header": "UISceneFrm.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffModel",
+   "header": "CTaskTpl_tagEffTaskParam_CEffModel.h"
+  },
+  {
+   "type": "gbSnow",
+   "header": "gbSnow.h"
+  },
+  {
+   "type": "tagCmdDataDestRoleView",
+   "header": "tagCmdDataDestRoleView.h"
+  },
+  {
+   "type": "ComboAttack",
+   "header": "ComboAttack.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffCallBack",
+   "header": "CTaskTpl_tagEffTaskParam_CEffCallBack.h"
+  },
+  {
+   "type": "SceIndex",
+   "header": "SceIndex.h"
+  },
+  {
+   "type": "ScreenEffectNode",
+   "header": "ScreenEffectNode.h"
+  },
+  {
+   "type": "NavigationInfo",
+   "header": "NavigationInfo.h"
+  },
+  {
+   "type": "gbTexFlipAnim",
+   "header": "gbTexFlipAnim.h"
+  },
+  {
+   "type": "PalScript",
+   "header": "PalScript.h"
+  },
+  {
+   "type": "_IMAGE_NT_HEADERS",
+   "header": "_IMAGE_NT_HEADERS.h"
+  },
+  {
+   "type": "UnwindMapEntry",
+   "header": "UnwindMapEntry.h"
+  },
+  {
+   "type": "ARC_PlayerItem",
+   "header": "ARC_PlayerItem.h"
+  },
+  {
+   "type": "_TimeMgr",
+   "header": "_TimeMgr.h"
+  },
+  {
+   "type": "CG_Entry",
+   "header": "CG_Entry.h"
+  },
+  {
+   "type": "SceneObjScript",
+   "header": "SceneObjScript.h"
+  },
+  {
+   "type": "CEffObj",
+   "header": "CEffObj.h"
+  },
+  {
+   "type": "UITabBtn",
+   "header": "UITabBtn.h"
+  },
+  {
+   "type": "gbGfxStatistic",
+   "header": "gbGfxStatistic.h"
+  },
+  {
+   "type": "UITitle_QCYM",
+   "header": "UITitle_QCYM.h"
+  },
+  {
+   "type": "CRotateEmitterPolicy",
+   "header": "CRotateEmitterPolicy.h"
+  },
+  {
+   "type": "CG_Scene_ArrayErase",
+   "header": "CG_Scene_ArrayErase.h"
+  },
+  {
+   "type": "gbParticleGroup",
+   "header": "gbParticleGroup.h"
+  },
+  {
+   "type": "tMaterialInfo",
+   "header": "tMaterialInfo.h"
+  },
+  {
+   "type": "LINEUPINFO",
+   "header": "LINEUPINFO.h"
+  },
+  {
+   "type": "SSE4xMatrix",
+   "header": "SSE4xMatrix.h"
+  },
+  {
+   "type": "ThrowInfo",
+   "header": "ThrowInfo.h"
+  },
+  {
+   "type": "ParabolaCalculator_PRBL_STATE",
+   "header": "ParabolaCalculator_PRBL_STATE.h"
+  },
+  {
+   "type": "vert",
+   "header": "vert.h"
+  },
+  {
+   "type": "PARTICLEVERTEX",
+   "header": "PARTICLEVERTEX.h"
+  },
+  {
+   "type": "DIPROPHEADER",
+   "header": "DIPROPHEADER.h"
+  },
+  {
+   "type": "_D3DVERTEXELEMENT9",
+   "header": "_D3DVERTEXELEMENT9.h"
+  },
+  {
+   "type": "_D3DVOLUME_DESC",
+   "header": "_D3DVOLUME_DESC.h"
+  },
+  {
+   "type": "NavFaceLayer",
+   "header": "NavFaceLayer.h"
+  },
+  {
+   "type": "tagRegion",
+   "header": "tagRegion.h"
+  },
+  {
+   "type": "FontPrint3DInfo",
+   "header": "FontPrint3DInfo.h"
+  },
+  {
+   "type": "RoleAttRemarkSkills",
+   "header": "RoleAttRemarkSkills.h"
+  },
+  {
+   "type": "_PlugInfo",
+   "header": "_PlugInfo.h"
+  },
+  {
+   "type": "VertPoolMgr",
+   "header": "VertPoolMgr.h"
+  },
+  {
+   "type": "NavTileLayer",
+   "header": "NavTileLayer.h"
+  },
+  {
+   "type": "collision",
+   "header": "collision.h"
+  },
+  {
+   "type": "gbPartParamControl",
+   "header": "gbPartParamControl.h"
+  },
+  {
+   "type": "CEffCylinder",
+   "header": "CEffCylinder.h"
+  },
+  {
+   "type": "CScreenMode",
+   "header": "CScreenMode.h"
+  },
+  {
+   "type": "gbGeomNode",
+   "header": "gbGeomNode.h"
+  },
+  {
+   "type": "gbSceneGraph",
+   "header": "gbSceneGraph.h"
+  },
+  {
+   "type": "gbMatrix4",
+   "header": "gbMatrix4.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffgbParticle",
+   "header": "CTaskTpl_tagEffTaskParam_CEffgbParticle.h"
+  },
+  {
+   "type": "s_RoleState",
+   "header": "s_RoleState.h"
+  },
+  {
+   "type": "UISlider",
+   "header": "UISlider.h"
+  },
+  {
+   "type": "PalScriptDialogOverlay",
+   "header": "PalScriptDialogOverlay.h"
+  },
+  {
+   "type": "gbMatrix4Flat",
+   "header": "gbMatrix4Flat.h"
+  },
+  {
+   "type": "tagEffObj",
+   "header": "tagEffObj.h"
+  },
+  {
+   "type": "PAL3VisNode",
+   "header": "PAL3VisNode.h"
+  },
+  {
+   "type": "CSimpleDirPolicy",
+   "header": "CSimpleDirPolicy.h"
+  },
+  {
+   "type": "UIBase",
+   "header": "UIBase.h"
+  },
+  {
+   "type": "UIHeadDialog",
+   "header": "UIHeadDialog.h"
+  },
+  {
+   "type": "UIRoleDialog",
+   "header": "UIRoleDialog.h"
+  },
+  {
+   "type": "gbVec4D",
+   "header": "gbVec4D.h"
+  },
+  {
+   "type": "_s__ThrowInfo",
+   "header": "_s__ThrowInfo.h"
+  },
+  {
+   "type": "DIEFFECT",
+   "header": "DIEFFECT.h"
+  },
+  {
+   "type": "tagCPKHeader",
+   "header": "tagCPKHeader.h"
+  },
+  {
+   "type": "gbIndexBubble",
+   "header": "gbIndexBubble.h"
+  },
+  {
+   "type": "RoleShadow",
+   "header": "RoleShadow.h"
+  },
+  {
+   "type": "Inventory",
+   "header": "Inventory.h"
+  },
+  {
+   "type": "vertexalpha_particle_graph",
+   "header": "vertexalpha_particle_graph.h"
+  },
+  {
+   "type": "gbMeshMemCache",
+   "header": "gbMeshMemCache.h"
+  },
+  {
+   "type": "gbAnimKey",
+   "header": "gbAnimKey.h"
+  },
+  {
+   "type": "tagRoleSystemData",
+   "header": "tagRoleSystemData.h"
+  },
+  {
+   "type": "S_Distribute",
+   "header": "S_Distribute.h"
+  },
+  {
+   "type": "CRenderTarget2",
+   "header": "CRenderTarget2.h"
+  },
+  {
+   "type": "gbPartGroupParam",
+   "header": "gbPartGroupParam.h"
+  },
+  {
+   "type": "GhostParam",
+   "header": "GhostParam.h"
+  },
+  {
+   "type": "LARGE_INTEGER",
+   "header": "LARGE_INTEGER.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffTemplate",
+   "header": "CTaskTpl_tagEffTaskParam_CEffTemplate.h"
+  },
+  {
+   "type": "NGHHURT",
+   "header": "NGHHURT.h"
+  },
+  {
+   "type": "_count_string",
+   "header": "_count_string.h"
+  },
+  {
+   "type": "gbVertexElement",
+   "header": "gbVertexElement.h"
+  },
+  {
+   "type": "tagRoleActionState",
+   "header": "tagRoleActionState.h"
+  },
+  {
+   "type": "_Console",
+   "header": "_Console.h"
+  },
+  {
+   "type": "tagTeamSlotsBOverlay",
+   "header": "tagTeamSlotsBOverlay.h"
+  },
+  {
+   "type": "gbNBTreeNode",
+   "header": "gbNBTreeNode.h"
+  },
+  {
+   "type": "Matrix4",
+   "header": "Matrix4.h"
+  },
+  {
+   "type": "gbVFileSystem",
+   "header": "gbVFileSystem.h"
+  },
+  {
+   "type": "gbEmitterSphere",
+   "header": "gbEmitterSphere.h"
+  },
+  {
+   "type": "tagListHead",
+   "header": "tagListHead.h"
+  },
+  {
+   "type": "PalScriptFadeOutTimer",
+   "header": "PalScriptFadeOutTimer.h"
+  },
+  {
+   "type": "CRenderTarget",
+   "header": "CRenderTarget.h"
+  },
+  {
+   "type": "CCBStageScene",
+   "header": "CCBStageScene.h"
+  },
+  {
+   "type": "CDamplyCentripetalPolicy",
+   "header": "CDamplyCentripetalPolicy.h"
+  },
+  {
+   "type": "D3DDeviceCombo",
+   "header": "D3DDeviceCombo.h"
+  },
+  {
+   "type": "EffBinkNode",
+   "header": "EffBinkNode.h"
+  },
+  {
+   "type": "CD3DEnumeration",
+   "header": "CD3DEnumeration.h"
+  },
+  {
+   "type": "EffModeParam",
+   "header": "EffModeParam.h"
+  },
+  {
+   "type": "UnderWater",
+   "header": "UnderWater.h"
+  },
+  {
+   "type": "CCBUIPanel",
+   "header": "CCBUIPanel.h"
+  },
+  {
+   "type": "errentry",
+   "header": "errentry.h"
+  },
+  {
+   "type": "gbFogParam",
+   "header": "gbFogParam.h"
+  },
+  {
+   "type": "UIGameOver",
+   "header": "UIGameOver.h"
+  },
+  {
+   "type": "_D3DVSHADERCAPS2_0",
+   "header": "_D3DVSHADERCAPS2_0.h"
+  },
+  {
+   "type": "CONTEXT",
+   "header": "CONTEXT.h"
+  },
+  {
+   "type": "PalScriptRoleSlotOverlay",
+   "header": "PalScriptRoleSlotOverlay.h"
+  },
+  {
+   "type": "_EXCEPTION_POINTERS",
+   "header": "_EXCEPTION_POINTERS.h"
+  },
+  {
+   "type": "UISceneFace",
+   "header": "UISceneFace.h"
+  },
+  {
+   "type": "MXSavePoint",
+   "header": "MXSavePoint.h"
+  },
+  {
+   "type": "DIDEVICEINSTANCEA",
+   "header": "DIDEVICEINSTANCEA.h"
+  },
+  {
+   "type": "CEffect",
+   "header": "CEffect.h"
+  },
+  {
+   "type": "DataConst",
+   "header": "DataConst.h"
+  },
+  {
+   "type": "ParabolaCalculator",
+   "header": "ParabolaCalculator.h"
+  },
+  {
+   "type": "emissionrate_emitter_graph",
+   "header": "emissionrate_emitter_graph.h"
+  },
+  {
+   "type": "CCBProtectWindow",
+   "header": "CCBProtectWindow.h"
+  },
+  {
+   "type": "rotmulti_emitter_graph",
+   "header": "rotmulti_emitter_graph.h"
+  },
+  {
+   "type": "UIManager",
+   "header": "UIManager.h"
+  },
+  {
+   "type": "WishPool",
+   "header": "WishPool.h"
+  },
+  {
+   "type": "CCBTaskSlot208",
+   "header": "CCBTaskSlot208.h"
+  },
+  {
+   "type": "UIEmote",
+   "header": "UIEmote.h"
+  },
+  {
+   "type": "tagCmdData",
+   "header": "tagCmdData.h"
+  },
+  {
+   "type": "MUIDialog",
+   "header": "MUIDialog.h"
+  },
+  {
+   "type": "ChoseCompose",
+   "header": "ChoseCompose.h"
+  },
+  {
+   "type": "PMD",
+   "header": "PMD.h"
+  },
+  {
+   "type": "CCBRoleState",
+   "header": "CCBRoleState.h"
+  },
+  {
+   "type": "CCBFiveNimbusWindow",
+   "header": "CCBFiveNimbusWindow.h"
+  },
+  {
+   "type": "sg_emission_control",
+   "header": "sg_emission_control.h"
+  },
+  {
+   "type": "ObjectCamera",
+   "header": "ObjectCamera.h"
+  },
+  {
+   "type": "SkyboxEffTex",
+   "header": "SkyboxEffTex.h"
+  },
+  {
+   "type": "RoleAtt",
+   "header": "RoleAtt.h"
+  },
+  {
+   "type": "DIDEVICEOBJECTINSTANCEA",
+   "header": "DIDEVICEOBJECTINSTANCEA.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffMeteor",
+   "header": "CTaskTpl_tagEffTaskParam_CEffMeteor.h"
+  },
+  {
+   "type": "TaskBookUI",
+   "header": "TaskBookUI.h"
+  },
+  {
+   "type": "PropUI",
+   "header": "PropUI.h"
+  },
+  {
+   "type": "CGameData",
+   "header": "CGameData.h"
+  },
+  {
+   "type": "tagSkillCountBlock",
+   "header": "tagSkillCountBlock.h"
+  },
+  {
+   "type": "ArcMsic",
+   "header": "ArcMsic.h"
+  },
+  {
+   "type": "Collide_Ray",
+   "header": "Collide_Ray.h"
+  },
+  {
+   "type": "EffAudioNode",
+   "header": "EffAudioNode.h"
+  },
+  {
+   "type": "UIAnimCtrl",
+   "header": "UIAnimCtrl.h"
+  },
+  {
+   "type": "PAL3",
+   "header": "PAL3.h"
+  },
+  {
+   "type": "ParticleVisNode",
+   "header": "ParticleVisNode.h"
+  },
+  {
+   "type": "DICOLORSET",
+   "header": "DICOLORSET.h"
+  },
+  {
+   "type": "Object3D",
+   "header": "Object3D.h"
+  },
+  {
+   "type": "_D3DCAPS9",
+   "header": "_D3DCAPS9.h"
+  },
+  {
+   "type": "FightItem",
+   "header": "FightItem.h"
+  },
+  {
+   "type": "GameObject",
+   "header": "GameObject.h"
+  },
+  {
+   "type": "_btnOPTDATA",
+   "header": "_btnOPTDATA.h"
+  },
+  {
+   "type": "SPECIAL_ACTION",
+   "header": "SPECIAL_ACTION.h"
+  },
+  {
+   "type": "UILBColumn",
+   "header": "UILBColumn.h"
+  },
+  {
+   "type": "tagCam",
+   "header": "tagCam.h"
+  },
+  {
+   "type": "ScreenFadeOut",
+   "header": "ScreenFadeOut.h"
+  },
+  {
+   "type": "_STREAM",
+   "header": "_STREAM.h"
+  },
+  {
+   "type": "code_page_info",
+   "header": "code_page_info.h"
+  },
+  {
+   "type": "CCBSystem",
+   "header": "CCBSystem.h"
+  },
+  {
+   "type": "UIScene",
+   "header": "UIScene.h"
+  },
+  {
+   "type": "tagShockUnit",
+   "header": "tagShockUnit.h"
+  },
+  {
+   "type": "gbAudioMgrDesc",
+   "header": "gbAudioMgrDesc.h"
+  },
+  {
+   "type": "gbVertexBubble",
+   "header": "gbVertexBubble.h"
+  },
+  {
+   "type": "_PURGE_INFO",
+   "header": "_PURGE_INFO.h"
+  },
+  {
+   "type": "SoundAttachObj",
+   "header": "SoundAttachObj.h"
+  },
+  {
+   "type": "gbFileStream",
+   "header": "gbFileStream.h"
+  },
+  {
+   "type": "localVar2",
+   "header": "localVar2.h"
+  },
+  {
+   "type": "Role",
+   "header": "Role.h"
+  },
+  {
+   "type": "_D3DLOCKED_RECT",
+   "header": "_D3DLOCKED_RECT.h"
+  },
+  {
+   "type": "_LARGE_INTEGER",
+   "header": "_LARGE_INTEGER.h"
+  },
+  {
+   "type": "ExternalStatistics",
+   "header": "ExternalStatistics.h"
+  },
+  {
+   "type": "_D3DPRESENT_PARAMETERS_",
+   "header": "_D3DPRESENT_PARAMETERS_.h"
+  },
+  {
+   "type": "tagLVCOLUMNA",
+   "header": "tagLVCOLUMNA.h"
+  },
+  {
+   "type": "GrayScale",
+   "header": "GrayScale.h"
+  },
+  {
+   "type": "gbRefObject",
+   "header": "gbRefObject.h"
+  },
+  {
+   "type": "tagAttackSequen",
+   "header": "tagAttackSequen.h"
+  },
+  {
+   "type": "CCBUI",
+   "header": "CCBUI.h"
+  },
+  {
+   "type": "ScriptWaitFrm",
+   "header": "ScriptWaitFrm.h"
+  },
+  {
+   "type": "ECBRoleSpecState",
+   "header": "ECBRoleSpecState.h"
+  },
+  {
+   "type": "OBJHELPER",
+   "header": "OBJHELPER.h"
+  },
+  {
+   "type": "SaveTask",
+   "header": "SaveTask.h"
+  },
+  {
+   "type": "_DICONFIGUREDEVICESPARAMSA",
+   "header": "_DICONFIGUREDEVICESPARAMSA.h"
+  },
+  {
+   "type": "_Item_List_Info",
+   "header": "_Item_List_Info.h"
+  },
+  {
+   "type": "UIPosMaker",
+   "header": "UIPosMaker.h"
+  },
+  {
+   "type": "_D3DTRIPATCH_INFO",
+   "header": "_D3DTRIPATCH_INFO.h"
+  },
+  {
+   "type": "UINote",
+   "header": "UINote.h"
+  },
+  {
+   "type": "CatchableType",
+   "header": "CatchableType.h"
+  },
+  {
+   "type": "DIDEVICEOBJECTDATA",
+   "header": "DIDEVICEOBJECTDATA.h"
+  },
+  {
+   "type": "MvcViewport",
+   "header": "MvcViewport.h"
+  },
+  {
+   "type": "UI3DObj",
+   "header": "UI3DObj.h"
+  },
+  {
+   "type": "tagPOINT",
+   "header": "tagPOINT.h"
+  },
+  {
+   "type": "gbTagNode",
+   "header": "gbTagNode.h"
+  },
+  {
+   "type": "tagGroup",
+   "header": "tagGroup.h"
+  },
+  {
+   "type": "ARC_FightSkill",
+   "header": "ARC_FightSkill.h"
+  },
+  {
+   "type": "tagLVITEMA",
+   "header": "tagLVITEMA.h"
+  },
+  {
+   "type": "UIScrollBar_SB_AREA",
+   "header": "UIScrollBar_SB_AREA.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffShock",
+   "header": "CTaskTpl_tagEffTaskParam_CEffShock.h"
+  },
+  {
+   "type": "SoundSystem",
+   "header": "SoundSystem.h"
+  },
+  {
+   "type": "HHOOK__",
+   "header": "HHOOK__.h"
+  },
+  {
+   "type": "ObjectInfoBase",
+   "header": "ObjectInfoBase.h"
+  },
+  {
+   "type": "gbEmitterData",
+   "header": "gbEmitterData.h"
+  },
+  {
+   "type": "LEVELPARAM",
+   "header": "LEVELPARAM.h"
+  },
+  {
+   "type": "_FLTPROVIDER",
+   "header": "_FLTPROVIDER.h"
+  },
+  {
+   "type": "t3DObject",
+   "header": "t3DObject.h"
+  },
+  {
+   "type": "scSCEFile",
+   "header": "scSCEFile.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffQuake",
+   "header": "CTaskTpl_tagEffTaskParam_CEffQuake.h"
+  },
+  {
+   "type": "SceneMgrCamBlock",
+   "header": "SceneMgrCamBlock.h"
+  },
+  {
+   "type": "Config",
+   "header": "Config.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffTime",
+   "header": "CTaskTpl_tagEffTaskParam_CEffTime.h"
+  },
+  {
+   "type": "UIPar_Meteor",
+   "header": "UIPar_Meteor.h"
+  },
+  {
+   "type": "SoundMgr",
+   "header": "SoundMgr.h"
+  },
+  {
+   "type": "tag4DWORD",
+   "header": "tag4DWORD.h"
+  },
+  {
+   "type": "gbColorQuadChannels",
+   "header": "gbColorQuadChannels.h"
+  },
+  {
+   "type": "CCBStageRole",
+   "header": "CCBStageRole.h"
+  },
+  {
+   "type": "tagEffClass",
+   "header": "tagEffClass.h"
+  },
+  {
+   "type": "tagVAF",
+   "header": "tagVAF.h"
+  },
+  {
+   "type": "gbBaseMesh",
+   "header": "gbBaseMesh.h"
+  },
+  {
+   "type": "tagCombatTimerState",
+   "header": "tagCombatTimerState.h"
+  },
+  {
+   "type": "RenderTarget",
+   "header": "RenderTarget.h"
+  },
+  {
+   "type": "gbActorDef",
+   "header": "gbActorDef.h"
+  },
+  {
+   "type": "_SCOPETABLE_ENTRY",
+   "header": "_SCOPETABLE_ENTRY.h"
+  },
+  {
+   "type": "NavFace",
+   "header": "NavFace.h"
+  },
+  {
+   "type": "CParticleEffect",
+   "header": "CParticleEffect.h"
+  },
+  {
+   "type": "RoleCameraCtrl",
+   "header": "RoleCameraCtrl.h"
+  },
+  {
+   "type": "ScreenEffectMgr",
+   "header": "ScreenEffectMgr.h"
+  },
+  {
+   "type": "GRP_KEYREG",
+   "header": "GRP_KEYREG.h"
+  },
+  {
+   "type": "tagEntryEnd",
+   "header": "tagEntryEnd.h"
+  },
+  {
+   "type": "EffObjectPool",
+   "header": "EffObjectPool.h"
+  },
+  {
+   "type": "D3DXVECTOR2",
+   "header": "D3DXVECTOR2.h"
+  },
+  {
+   "type": "tagFightScriptData",
+   "header": "tagFightScriptData.h"
+  },
+  {
+   "type": "UITitle_ArcSave",
+   "header": "UITitle_ArcSave.h"
+  },
+  {
+   "type": "MeshFxCreator",
+   "header": "MeshFxCreator.h"
+  },
+  {
+   "type": "tagUV",
+   "header": "tagUV.h"
+  },
+  {
+   "type": "gbRenderEffect_D3D",
+   "header": "gbRenderEffect_D3D.h"
+  },
+  {
+   "type": "ArraySlots",
+   "header": "ArraySlots.h"
+  },
+  {
+   "type": "gbAABBox",
+   "header": "gbAABBox.h"
+  },
+  {
+   "type": "MiniGame1",
+   "header": "MiniGame1.h"
+  },
+  {
+   "type": "SceneObj_Common_State",
+   "header": "SceneObj_Common_State.h"
+  },
+  {
+   "type": "TextureLib",
+   "header": "TextureLib.h"
+  },
+  {
+   "type": "__m64",
+   "header": "__m64.h"
+  },
+  {
+   "type": "GRPinput",
+   "header": "GRPinput.h"
+  },
+  {
+   "type": "ioinfo",
+   "header": "ioinfo.h"
+  },
+  {
+   "type": "CRandomColorPolicy",
+   "header": "CRandomColorPolicy.h"
+  },
+  {
+   "type": "SceneMgr",
+   "header": "SceneMgr.h"
+  },
+  {
+   "type": "_Item",
+   "header": "_Item.h"
+  },
+  {
+   "type": "CPPEH_RECORD",
+   "header": "CPPEH_RECORD.h"
+  },
+  {
+   "type": "UISelectDialog",
+   "header": "UISelectDialog.h"
+  },
+  {
+   "type": "util",
+   "header": "util.h"
+  },
+  {
+   "type": "sg_emitter_square",
+   "header": "sg_emitter_square.h"
+  },
+  {
+   "type": "CTaskTpl_tagEffTaskParam_CEffCustomShape",
+   "header": "CTaskTpl_tagEffTaskParam_CEffCustomShape.h"
+  },
+  {
+   "type": "_XCPT_ACTION",
+   "header": "_XCPT_ACTION.h"
+  },
+  {
+   "type": "PlayerItemSortFun",
+   "header": "PlayerItemSortFun.h"
+  },
+  {
+   "type": "_D3DBOX",
+   "header": "_D3DBOX.h"
+  },
+  {
+   "type": "CEmitter",
+   "header": "CEmitter.h"
+  },
+  {
+   "type": "WAVEFORMAT",
+   "header": "WAVEFORMAT.h"
+  },
+  {
+   "type": "Color4ub",
+   "header": "Color4ub.h"
+  },
+  {
+   "type": "DIEFFESCAPE",
+   "header": "DIEFFESCAPE.h"
+  },
+  {
+   "type": "CAccelCentripetalPolicy",
+   "header": "CAccelCentripetalPolicy.h"
+  },
+  {
+   "type": "UITitle_YXXX",
+   "header": "UITitle_YXXX.h"
+  },
+  {
+   "type": "IMAGE_OPTIONAL_HEADER32",
+   "header": "IMAGE_OPTIONAL_HEADER32.h"
+  },
+  {
+   "type": "RoleTask",
+   "header": "RoleTask.h"
+  },
+  {
+   "type": "gbActor",
+   "header": "gbActor.h"
+  },
+  {
+   "type": "UITextureArray",
+   "header": "UITextureArray.h"
+  },
+  {
+   "type": "tagKBDLLHOOKSTRUCT",
+   "header": "tagKBDLLHOOKSTRUCT.h"
+  },
+  {
+   "type": "tagPAL3GameState",
+   "header": "tagPAL3GameState.h"
+  },
+  {
+   "type": "_DIACTIONA",
+   "header": "_DIACTIONA.h"
+  },
+  {
+   "type": "ARC_PlayerAtt",
+   "header": "ARC_PlayerAtt.h"
+  },
+  {
+   "type": "gbRenderInfoObj",
+   "header": "gbRenderInfoObj.h"
+  },
+  {
+   "type": "_D3DLOCKED_BOX",
+   "header": "_D3DLOCKED_BOX.h"
+  },
+  {
+   "type": "DPINFO___unnamed",
+   "header": "DPINFO___unnamed.h"
+  },
+  {
+   "type": "gbRay",
+   "header": "gbRay.h"
+  },
+  {
+   "type": "_DIOBJECTDATAFORMAT",
+   "header": "_DIOBJECTDATAFORMAT.h"
+  },
+  {
+   "type": "HandlerType",
+   "header": "HandlerType.h"
+  },
+  {
+   "type": "gbBinkVideo",
+   "header": "gbBinkVideo.h"
+  },
+  {
+   "type": "CAcceleratedMotionPolicy",
+   "header": "CAcceleratedMotionPolicy.h"
+  },
+  {
+   "type": "ScreenFadeIn",
+   "header": "ScreenFadeIn.h"
+  },
+  {
+   "type": "CJ_FindFile",
+   "header": "CJ_FindFile.h"
+  },
+  {
+   "type": "MXPoisonFog",
+   "header": "MXPoisonFog.h"
+  },
+  {
+   "type": "gbChain1DNode",
+   "header": "gbChain1DNode.h"
+  },
+  {
+   "type": "SwordUI",
+   "header": "SwordUI.h"
+  },
+  {
+   "type": "size_particle_graph",
+   "header": "size_particle_graph.h"
+  },
+  {
+   "type": "CSEHException",
+   "header": "CSEHException.h"
+  },
+  {
+   "type": "PMFN",
+   "header": "PMFN.h"
+  },
+  {
+   "type": "primitive",
+   "header": "primitive.h"
+  },
+  {
+   "type": "UI3DCtrl",
+   "header": "UI3DCtrl.h"
+  },
+  {
+   "type": "NameSys_NAMEFLAG",
+   "header": "NameSys_NAMEFLAG.h"
+  },
+  {
+   "type": "MonsterStar",
+   "header": "MonsterStar.h"
+  },
+  {
+   "type": "FontPrintInfo",
+   "header": "FontPrintInfo.h"
+  },
+  {
+   "type": "RenderTarget2",
+   "header": "RenderTarget2.h"
+  },
+  {
+   "type": "CEffCamera",
+   "header": "CEffCamera.h"
+  },
+  {
+   "type": "UIBigDialog",
+   "header": "UIBigDialog.h"
+  },
+  {
+   "type": "BOSSHURT",
+   "header": "BOSSHURT.h"
+  },
+  {
+   "type": "EffTargetPool",
+   "header": "EffTargetPool.h"
+  },
+  {
+   "type": "gbSound2DNode",
+   "header": "gbSound2DNode.h"
+  },
+  {
+   "type": "ComposeUI",
+   "header": "ComposeUI.h"
+  },
+  {
+   "type": "tagMeteorNode",
+   "header": "tagMeteorNode.h"
+  },
+  {
+   "type": "SkillData",
+   "header": "SkillData.h"
+  },
+  {
+   "type": "PathObj",
+   "header": "PathObj.h"
+  },
+  {
+   "type": "graph",
+   "header": "graph.h"
+  },
+  {
+   "type": "CCBEditor",
+   "header": "CCBEditor.h"
+  },
+  {
+   "type": "CCBLineupWindow",
+   "header": "CCBLineupWindow.h"
+  },
+  {
+   "type": "tagUIParam",
+   "header": "tagUIParam.h"
+  }
+ ],
+ "additionalSources": [],
+ "methodConversions": []
+}
