@@ -1,0 +1,10 @@
+#ifndef HC_VC6_CSTRING_H
+#define HC_VC6_CSTRING_H
+#include <string.h>
+namespace std {
+  using ::memcpy; using ::memcmp; using ::memmove; using ::memset;
+  using ::strlen; using ::strcpy; using ::strncpy; using ::strcmp; using ::strncmp;
+  using ::strcat; using ::strncat; using ::strchr; using ::strrchr;
+  using ::strstr; using ::strtok;
+}
+#endif

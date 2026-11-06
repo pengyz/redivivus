@@ -8,3 +8,12 @@ sites2.tsv
 output/
 ghidra_proj/
 project/parser-errors.log
+reconstruct-out/
+build-p/
+build-s2/
+build-s3/
+build-std/
+project-p/
+project-s2/
+project-s3/
+project-std/

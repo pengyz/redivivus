@@ -1,0 +1,73 @@
+/* VC6 compat shim: <cstdint> is C++11; VC6 (12.00) has no stdint.h.
+   32-bit ILP32. VC6 has no `long long` (C2632) → __int64. */
+#ifndef HC_VC6_CSTDINT_H
+#define HC_VC6_CSTDINT_H
+#include <time.h>   /* __time64_t/__time32_t (d2_platform wrappers) */
+/* VC6 TIME.H lacks the __time64_t typedef (only _time64 fn) */
+#ifndef _TIME64_T_DEFINED
+typedef __int64 __time64_t;
+#define _TIME64_T_DEFINED
+#endif
+#ifndef _TIME32_T_DEFINED
+typedef int __time32_t;
+#define _TIME32_T_DEFINED
+#endif
+/* VC6 RTM ships neither _time64 nor _time32 — provide via time() (32-bit era) */
+#ifndef HC_VC6_TIME64_FN
+#define HC_VC6_TIME64_FN
+static __inline __time64_t _time64(__time64_t* t) { time_t v = time(0); if (t) *t = (__time64_t)v; return (__time64_t)v; }
+static __inline __time32_t _time32(__time32_t* t) { time_t v = time(0); if (t) *t = (int)v; return (int)v; }
+#endif
+/* POSIX/C99 names VC6 lacks */
+#define vsnprintf _vsnprintf
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+typedef signed char        int8_t;
+typedef unsigned char      uint8_t;
+typedef short              int16_t;
+typedef unsigned short     uint16_t;
+typedef int                int32_t;
+typedef unsigned int       uint32_t;
+typedef __int64            int64_t;
+typedef unsigned __int64   uint64_t;
+typedef int                intptr_t;
+typedef unsigned int       uintptr_t;
+typedef int                errno_t;   /* VS2005+; VC6 lacks it */
+namespace std {
+  using ::int8_t;  using ::uint8_t;
+  using ::int16_t; using ::uint16_t;
+  using ::int32_t; using ::uint32_t;
+  using ::int64_t; using ::uint64_t;
+  using ::intptr_t; using ::uintptr_t;
+}
+/* d2_platform.h:115 calls __cpuid — VC6 (12.00) has no such intrinsic
+   (VC2005+). x86 inline-asm fallback; defined here because d2_platform.h
+   includes <cstdint> before its cpuid helper. */
+#if defined(_MSC_VER) && (_MSC_VER < 1400)
+static __inline void __hc_cpuid(int* r, int leaf) {
+    __asm {
+        push ebx
+        mov eax, leaf
+        cpuid
+        mov esi, r
+        mov [esi], eax
+        mov [esi+4], ebx
+        mov [esi+8], ecx
+        mov [esi+12], edx
+        pop ebx
+    }
+}
+#define __cpuid(regs, leaf) __hc_cpuid((int*)(regs), (int)(leaf))
+#endif
+/* VC6 lacks static_assert (C++11) — layout checks become no-ops */
+#ifndef static_assert
+#define static_assert(cond, msg)
+#endif
+/* VC6 RTM typename handling is broken for dependent-name cases
+   (d2_bits_word family) — classic empty-define hack; no tree identifier
+   uses `typename` as a name. */
+#ifndef typename
+#define typename
+#endif
+#endif
+
