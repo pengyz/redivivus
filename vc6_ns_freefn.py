@@ -100,12 +100,19 @@ def load_siglib():
         if not ok: unsup += 1; continue
         e['ret'], e['params'] = ret, params
         lib.setdefault((e['cls'], e['method']), e)
+        # Ghidra names the MSVC in-place default-ctor closure `??_FC@@QAEXXZ` as
+        # `<Cls>::_default_constructor_closure_` — alias it so call-site scans match.
+        if e['method'] == '??_F':
+            lib.setdefault((e['cls'], '_default_constructor_closure_'), e)
     return lib, len(mangled), unsup
 
 def parse_export(mn):
-    # ctor/op forms: `??<1-char op><Class>@@` - op code glues directly to class name
+    # ctor/op forms: `??<op><Class>@@` - op code glues directly to class name
     # (??0 ctor, ??1 dtor, ??2/3 new/delete, ??4 op=, ??8 op==, ??G op- ...). No '@' between.
-    m = re.match(r'\?\?([\dA-Za-z_])([A-Za-z_][A-Za-z0-9]*)@@[AQUV][AB][EF]@?(.*)$', mn)
+    # Two-char ops: ??_F = in-place default-ctor closure (MSVC `??_FC@@QAEXXZ`,
+    # Ghidra names it <Cls>::_default_constructor_closure_), ??_E/??_G = dtor variants;
+    # the `_X` must be consumed as ONE op unit.
+    m = re.match(r'\?\?(_[A-Z0-9]|[\dA-Za-z])([A-Za-z_][A-Za-z0-9]*)@@[AQUV][AB][EF]@?(.*)$', mn)
     if m:
         return {'cls': m.group(2), 'method': '??' + m.group(1), 'kind': 'ctor',
                 'rest': m.group(3), 'mangled': mn}
@@ -268,7 +275,8 @@ def main():
     member_re = re.compile(r'(?:\.|->)([A-Za-z_][A-Za-z0-9_]*)\s*\(')
     decl_cls = {}   # cls -> set(method) that dll exports and struct def exists (superset)
     for (cls, meth), e in lib.items():
-        if e['kind'] == 'method': decl_cls.setdefault(cls, set()).add(meth)
+        if e['kind'] == 'method' or e['method'] == '??_F':
+            decl_cls.setdefault(cls, set()).add(meth if e['kind'] == 'method' else '_default_constructor_closure_')
     for f in cpps:
         t = open(f, errors='ignore').read()
         for m in CALL_RE.finditer(t):
@@ -280,12 +288,29 @@ def main():
             if e is None: e = lib.get((cls, '??' + meth))                     # other ??-forms
             if e is None:
                 unmatched[f'{cls}::{meth}'] = unmatched.get(f'{cls}::{meth}', 0) + 1
-            elif e['kind'] == 'ctor': skips['ctor'] += 1
+            elif e['kind'] == 'ctor' and e['method'] != '??_F': skips['ctor'] += 1
             elif e['kind'] == 'op':   skips['op'] += 1
             else: wanted.setdefault(cls, set()).add(meth)
     # already-rewritten sites keep their classes in `wanted` via the export superset below
     for cls in decl_cls:
         wanted.setdefault(cls, set(decl_cls[cls]))
+
+    # pass1b: bare-call family scan — deepfix g) stripped `gbVFileSystem::` call prefixes
+    # BEFORE nsfix existed, so those sites are bare `Read(FS, ...)`. Collect them so decls
+    # are emitted (pass 2) and rewrites happen (pass 4). Evidence discipline: rewrite only
+    # sites whose FIRST argument text names the class (cast/type token) — no blind renaming.
+    BARE_FAMILY = ('gbVFileSystem',)
+    bare_hits = 0
+    for cls in BARE_FAMILY:
+        meths = [m2 for (c, m2), e in lib.items() if c == cls and e['kind'] == 'method']
+        for f in cpps:
+            t = open(f, errors='ignore').read()
+            for meth in meths:
+                for m2 in re.finditer(r'(?<![\w.])' + meth + r'\s*\(', t):
+                    a0, rest, after = split_args(t, m2.end() - 1)
+                    if cls in a0:
+                        wanted.setdefault(cls, set()).add(meth)
+                        bare_hits += 1
 
     # pass 2: emit decl blocks. Visibility discipline (per-HEADER, position-aware):
     #   a type is usable only if declared in the SAME header before the block. Missing
@@ -303,6 +328,30 @@ def main():
         path, close = loc
         text = headers[path]
         marker = f'/* nsfix:{cls} -'
+        if marker in text:
+            # incremental top-up: the block exists but a newer siglib may carry methods
+            # it lacks (e.g. the ??_F closure alias). Append only missing ones, just
+            # before the struct's closing brace.
+            block_end = brace_close(text, text.rindex('{', 0, text.index(marker)) + 0 if False else text.index('{', max(0, text.index(marker) - 4000)))if False else None
+            # find struct close from the marker position: the block sits inside the
+            # struct, so scan back to the struct open brace
+            open_idx = text.rfind('struct ', 0, text.index(marker))
+            open_idx = text.index('{', open_idx)
+            close_idx = brace_close(text, open_idx)
+            lines2 = []
+            for meth in sorted(meths):
+                if re.search(r'\b' + re.escape(meth) + r'\s*\(', text[text.index(marker):close_idx]):
+                    continue  # already declared in block
+                e = lib[(cls, meth)]
+                ret = e['ret'] or 'void'
+                ps = ', '.join(e['params']) if e['params'] else ''
+                constkw = ' const' if e.get('const') else ''
+                lines2.append(f'    {ret} {meth}({ps}){constkw}; /* {e["mangled"]} */')
+            if lines2:
+                text = text[:close_idx] + '\n'.join(lines2) + '\n' + text[close_idx:]
+                if not DRY:
+                    open(path, 'w').write(text)
+                headers[path] = text
         if marker not in text:
             # position-aware visibility: name -> first declaration offset in THIS header
             first_off = {}
@@ -383,6 +432,26 @@ def main():
         headers[path] = text
     if skipped_byval:
         print(f'nsfix: skipped by-value-undef decls: {skipped_byval}')
+    # repair v3: earlier pass3 emissions without cast/parens tore on precedence:
+    #   `(T*)*EXPR->m(...)` and `*EXPR->m(...)` both parse as `*(EXPR->m(...))`.
+    # Repair to the parenthesized form. Guarded: only rewrites forms where the arrow
+    # target name is a known siglib method (no blind deref rewriting).
+    all_meths = sorted({m2 for (c, m2), e in lib.items() if e['kind'] == 'method'}, key=len, reverse=True)
+    meth_alt = '|'.join(re.escape(m2) for m2 in all_meths)
+    # a) `(T*)*EXPR->m(` — capture T (the text inside the leading paren pair)
+    rb1 = re.compile(r'\((?:\s*::\s*)?((?:[A-Za-z_][A-Za-z0-9_]*::)*[A-Za-z_][A-Za-z0-9_]*)\s*\*+\)\s*\*\s*([A-Za-z_]\w*)\s*->\s*(' + meth_alt + r')\s*\(')
+    # b) bare `*EXPR->m(`
+    rb2 = re.compile(r'(?<![\w)&])\*\s*([A-Za-z_]\w*)\s*->\s*(' + meth_alt + r')\s*\(')
+    n_rep = 0
+    for f in cpps:
+        t = open(f, errors='ignore').read()
+        o = t
+        t = rb1.sub(r'((\1*)*\2)->\3(', t)
+        t = rb2.sub(r'(*\1)->\2(', t)
+        if not DRY and t != o:
+            open(f, 'w').write(t); n_rep += 1
+    if n_rep: print(f'nsfix: repaired deref-call precedence: {n_rep} files')
+
     # pass 3: rewrite call sites (only classes whose decl landed)
     n_rw = 0
     for f in cpps:
@@ -401,14 +470,82 @@ def main():
             if a0.startswith('&'):
                 newcall = f'{a0[1:].strip()}.{meth}({rest})'
             else:
-                newcall = f'{a0}->{meth}({rest})'
+                # this-arg is a pointer expr — assert the callee class type explicitly
+                # (the original `T::m(a0,...)` form asserted it; cast also fixes precedence
+                # for a0 like `(::X*)*puVar` or bare locals). `(T*)p->m` would tear again:
+                # wrap EVERYTHING: ((T*)a0)->m(rest)
+                newcall = f'(({cls}*){a0})->{meth}({rest})'
+            # v3-repair note: pass4's parenthesized form also applies here for bare-call
+            # rewrites; historical v1/v2 spellings are repaired by the fixpats block below.
             t = t[:m.start()] + newcall + t[after:]
             pos = m.start() + len(newcall)
             n_rw += 1
         if not DRY and t != o:
             open(f, 'w').write(t)
-    print(f'nsfix: decl classes={len(decl_ok)} skip-nodef={decl_skip} rewritten={n_rw} '
-          f'skip ctor={skips["ctor"]} op={skips["op"]}')
+
+    # pass 4: bare-call rewrite for the deepfix-g legacy family (gbVFileSystem only).
+    # `Read(FS, a, b)` -> `FS->Read(a, b)` when FS's text names the class. First arg == this.
+    n_bare = 0
+    for cls in BARE_FAMILY:
+        if cls not in decl_ok: continue
+        meths = [m2 for (c, m2), e in lib.items() if c == cls and e['kind'] == 'method']
+        # pre-step: repair v1 output — `*(T**)EXPR->m(...)` parsed wrong (-> binds tighter
+        # than *). The this-arg `*(gbVFileSystem**)g_pVFileSys` IS a pointer (deref of
+        # T** yields T*), so the member form needs parens: `(*(T**)EXPR)->m(...)`.
+        # two historical broken spellings, both repaired to `(*(T**)EXPR)->m(`:
+        #   v1: `*(T**)EXPR->m(`   (-> bound tighter than *)
+        #   v2: `(*T**EXPR)->m(`   (repair regex dropped cast parens)
+        fixpats = [
+            (re.compile(r'\*\(([A-Za-z_]\w*)\*\*\)([A-Za-z_]\w*)->([A-Za-z_]\w*)\('),
+             r'(*(\1**)\2)->\3('),
+            (re.compile(r'\(\*([A-Za-z_]\w*)\*\*([A-Za-z_]\w*)\)->([A-Za-z_]\w*)\('),
+             r'(*(\1**)\2)->\3('),
+            # v1 bare-call legacy: `(T*)&EXPR->M(` — the & and -> fight over precedence;
+            # the original arg was `&EXPR` (address of pointer-to-T = T**-ish), passed as
+            # this. Honest form: keep the address-of, cast it, THEN deref the member call:
+            # `(*(T**)&EXPR)->M(`. EXPR here is a global POINTER slot (g_BaseVFileSystem),
+            # so &EXPR is T** and one deref yields the T* this.
+            (re.compile(r'\(([A-Za-z_][A-Za-z0-9_]*)\*\)&([A-Za-z_]\w*)->([A-Za-z_]\w*)\('),
+             r'(*(\1**)&\2)->\3('),
+        ]
+        for f in cpps:
+            t = open(f, errors='ignore').read()
+            o = t
+            for pat, rep in fixpats:
+                t = pat.sub(rep, t)
+            if not DRY and t != o:
+                open(f, 'w').write(t)
+        for f in cpps:
+            t = open(f, errors='ignore').read()
+            o = t
+            pos = 0
+            while True:
+                best = None
+                for meth in meths:
+                    m2 = re.compile(r'(?<![\w.])' + meth + r'\s*\(').search(t, pos)
+                    if m2 and (best is None or m2.start() < best.start()):
+                        best = m2
+                if not best: break
+                meth = re.match(r'([A-Za-z_]\w*)', t[best.start():]).group(1)
+                e = lib.get((cls, meth))
+                if e is None or e['kind'] != 'method':
+                    pos = best.end(); continue
+                # guard: already a member call (`X->meth(`) — skip (idempotency)
+                if t[max(0, best.start() - 2):best.start()] == '->':
+                    pos = best.end(); continue
+                a0, rest, after = split_args(t, best.end() - 1)
+                if cls not in a0:
+                    pos = best.end(); continue
+                # parenthesize the this-expression: `->` binds tighter than `*`, and args
+                # like `*(gbVFileSystem**)g_pVFileSys` (a POINTER, deref of T**) need it
+                newcall = f'({a0})->{meth}({rest})'
+                t = t[:best.start()] + newcall + t[after:]
+                pos = best.start() + len(newcall)
+                n_bare += 1
+            if not DRY and t != o:
+                open(f, 'w').write(t)
+    print(f'nsfix: decl classes={len(decl_ok)} skip-nodef={len(decl_skip)} rewritten={n_rw} '
+          f'bare-rewritten={n_bare} skip ctor={skips["ctor"]} op={skips["op"]}')
     top = sorted(unmatched.items(), key=lambda x: -x[1])[:12]
     print('nsfix unmatched top:', top)
 

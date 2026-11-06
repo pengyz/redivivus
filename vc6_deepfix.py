@@ -14,7 +14,9 @@ n = 0
 for f in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
     t = open(f, errors='ignore').read()
     t2 = re.sub(r'\bgbVFileSystem::(?!gbVFileSystem\b)', '', t)   # keep nothing; ctor form handled below
-    t2 = t2.replace('gbVFileSystem::gbVFileSystem(', 'gbVFileSystem(')
+    # ctor form now goes to nsfix's ??0 handler (placement-new rewrite, q) below) —
+    # do NOT strip to bare `T(`: that left `gbVFileSystem((gbVFileSystem*)&g_x)` which
+    # VC6 parses as a type cast of an object value (C2440 'cannot convert T* to T').
     if t2 != t: open(f, 'w').write(t2); n += 1
 print('g) vfs:: strip:', n)
 
@@ -116,4 +118,196 @@ if start is not None:
             if new != lines[i]: lines[i] = new; changed = True
         if changed:
             open(f, 'w').writelines(lines); print('l) this→this_local ✓ (body %d-%d)' % (start+1, end+1))
+
+# m) GRPinput name-hiding fix: header declares `void GRPinput(void*)` (a FUNCTION, h:115278)
+#     which hides struct GRPinput (h:8196) for all later code — VC6 C2143 on every bare
+#     `GRPinput*` type use. Header decls already spell `struct GRPinput*`; the .cpp type
+#     uses need the elaborated specifier too. FUNCTION-CALL form `GRPinput(&x)` is NOT a
+#     type use — must stay bare (no `&`/`*` after the name), so the regex only matches
+#     GRPinput followed by */&. Idempotent: `struct GRPinput*` doesn't rematch (\bGRPinput
+#     still matches inside "struct GRPinput" — guard with negative lookbehind on "struct ".
+m = 0
+for f in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    t = open(f, errors='ignore').read(); o = t
+    t2 = re.sub(r'(?<!struct )\bGRPinput(\s*[*&])', r'struct GRPinput\1', t)
+    if t2 != t: open(f, 'w').write(t2); m += 1
+print('m) GRPinput→struct GRPinput (type uses):', m)
+
+# n) nullptr shim: VC6 predates C++11 — no nullptr. reconstruct emits it ~250×; NULL is
+#     ABI-identical (both spell a 0 pointer constant). Same layer as k) SQRT (idiom shim).
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+if 'define nullptr' not in t:
+    t += ('\n/* VC6 has no nullptr (C++11 idiom in codegen output); NULL is ABI-identical */\n'
+          '#include <stddef.h>\n'
+          '#ifndef nullptr\n#define nullptr NULL\n#endif\n')
+    open(f, 'w').write(t); print('n) nullptr shim ✓')
+
+# p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
+#     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
+#     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
+#     Labels are real .text addresses (Ghidra naming); extern uchar[1] decls are honest
+#     opaque holders (no type fabrication). LINK-LAYER DEBT: these need real symbols at
+#     those addresses at link time — revisit at wine_link (handoff §5.4 符号遗漏族).
+START = '/* nsfix-lab: BEGIN generated label decls (deepfix p) */'
+END = '/* nsfix-lab: END */'
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+labels = set()
+for f2 in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    labels |= set(re.findall(r'\bLAB_[0-9a-f]+\b', open(f2, errors='ignore').read()))
+# NOTE: `extern unsigned char L[1];` makes `&L` spell `unsigned char (*)[1]` — the
+# SEH frame code does `uint8_t* p = &L;` so that type is WRONG (C2440). A bare
+# `extern unsigned char L;` (object with incomplete info at decl site) gives
+# `&L` == `unsigned char*`, exactly what the use sites spell.
+body = ('\n' + START + '\n/* SEH frame label references - extern opaque holders; link needs real symbols */\n'
+        + '\n'.join('extern unsigned char %s;' % lb for lb in sorted(labels))
+        + '\n' + END + '\n')
+if START in t:
+    pre = t[:t.index(START)]
+    post = t[t.index(END) + len(END):]
+    t2 = pre + body.strip() + post
+else:
+    t2 = t.rstrip() + body
+if t2 != t:
+    open(f, 'w').write(t2)
+print('p) LAB_ decls ✓ (%d labels)' % len(labels))
+# l2) FUN_004019f0 name unification: reconstruct's preprocessGhidraCode ALREADY rewrites
+#     Ghidra's `this` → `self` in body text (impl.ts:1435), so the original l) rename
+#     (`this`→`this_local`) was redundant — and it raced with nsfix: nsfix rewrote the
+#     call sites `gbMatrixStack::Push(this_local)` (snapshot decomp-truth form) to member
+#     form using the a0 it found, while the declaration line in this body now reads
+#     `gbMatrixStack* self;` (reconstruct's own rename). Result: 5 uses of `this_local`
+#     with no declaration (C2065). Fix: unify to `self` inside this one body — the name
+#     the declaration already carries. Idempotent: no `this_local` left after one pass.
+f = 'reconstruct-out/_unnamespaced.cpp'
+lines = open(f, errors='ignore').readlines()
+start = next((i for i, l in enumerate(lines) if l.startswith('void FUN_004019f0() {')), None)
+if start is not None:
+    depth = 0; end = None
+    for i in range(start, len(lines)):
+        depth += lines[i].count('{') - lines[i].count('}')
+        if depth == 0 and i > start: end = i; break
+    if end:
+        n = 0
+        for i in range(start, end + 1):
+            new = lines[i].replace('this_local', 'self')
+            if new != lines[i]: lines[i] = new; n += 1
+        if n:
+            open(f, 'w').writelines(lines); print('l2) this_local→self unified: %d lines' % n)
+# q) in-place ctor calls (VC6-placement-new form; evidence in comment)
+CTOR_PAT = re.compile(
+    r'\b([A-Za-z_]\w*)::\1\(\s*\(([A-Za-z_]\w*)\s*\*\)&([A-Za-z_]\w*)\s*\)')
+LEGACY_PAT = re.compile(
+    r'(?<![\w.])\b([A-Za-z_]\w*)\(\s*\(\1\s*\*\)&([A-Za-z_]\w*)\s*\)')
+m2 = 0
+for f in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    t = open(f, errors='ignore').read(); o = t
+    def _repl(mm):
+        cls = mm.group(1)
+        # CTOR_PAT: (cls, cast, obj) — obj==cast textually, use group(3);
+        # LEGACY_PAT: (cls, obj) — obj is group(2)
+        obj = mm.group(3) if mm.re is CTOR_PAT else mm.group(2)
+        return f'new (&{obj}) {cls}()'
+    t = CTOR_PAT.sub(_repl, t)
+    t = LEGACY_PAT.sub(_repl, t)
+    if t != o: open(f, 'w').write(t); m2 += 1
+print('q) in-place ctor → placement new:', m2)
+
+# r) GetInstance name collision (A-level: two functions share one name)
+#    0x4ce0d0 = dynamic initializer of the global CPK object (body: `new (&DAT_00de9cb0) CPK()`;
+#    only binary caller 0x4ce0c0 = MSVC global-init registration). Ghidra mislabeled it
+#    "GetInstance". 0x53df70 = the REAL CScreenMode singleton getter (body: `return &g_CScreenMode;`),
+#    which ~300 call sites reference (AudioUpdate/CScreenMode flows).
+#    Header declares only the CPK one (`void GetInstance(); // 004ce0d0`) → every call site
+#    resolves to `void` → C2440 'void' family + C2065-type fallout.
+#    Honest fix: rename the CPK initializer to what it IS (no invented semantics — its body
+#    is placement-new of the CPK global), and declare the 0x53df70 getter for the call sites.
+#    Byte-match revisit: rename is symbol-level, zero codegen impact.
+import glob as _g
+m3 = 0
+for f in _g.glob('reconstruct-out/**/*.cpp', recursive=True) + _g.glob('reconstruct-out/**/*.h', recursive=True):
+    t = open(f, errors='ignore').read(); o = t
+    # def site of the CPK initializer (address comment is the anchor)
+    t = t.replace('// 1.14d: 004ce0d0\nvoid GetInstance() {', '// 1.14d: 004ce0d0 (global CPK dynamic initializer; renamed — the real CScreenMode GetInstance is 0x53df70)\nvoid CPK_global_init() {')
+    # header decl of the CPK one
+    t = t.replace('void GetInstance(); // 1.14d: 004ce0d0',
+                  'void CPK_global_init(); // 1.14d: 004ce0d0 (CPK global initializer; GetInstance=0x53df70)')
+    if t != o: open(f, 'w').write(t); m3 += 1
+print('r) CPK_global_init rename:', m3)
+# header decl for the real getter (idempotent insert next to the CPK decl)
+gh = 'reconstruct-out/_unnamespaced.h'
+t = open(gh, errors='ignore').read()
+if 'CScreenMode * GetInstance();' not in t and 'CScreenMode* GetInstance();' not in t:
+    t = t.replace('void CPK_global_init(); // 1.14d: 004ce0d0 (CPK global initializer; GetInstance=0x53df70)',
+                  'void CPK_global_init(); // 1.14d: 004ce0d0 (CPK global initializer; GetInstance=0x53df70)\n'
+                  'struct CScreenMode;\n'
+                  'CScreenMode * GetInstance(); // 1.14d: 0053df70 (real singleton getter — 300+ call sites)')
+    open(gh, 'w').write(t); print('r) CScreenMode GetInstance decl ✓')
+
+# s) GBENGINE_DLL namespace visibility: globals.h declares engine globals inside
+#    `namespace GBENGINE_DLL {...}` (B-import models Ghidra namespace GBENGINE.DLL),
+#    but game bodies reference them BARE (g_pVFileSys/ColorQuadFmt/g_CurrentTime...).
+#    The original source had them as plain globals; the namespace is a modeling layer.
+#    `using namespace GBENGINE_DLL;` at the include point restores the original
+#    unqualified visibility honestly (no per-site edits, no renames).
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+if 'using namespace GBENGINE_DLL;' not in t:
+    t = t.replace('#include "globals/globals.h"',
+                  '#include "globals/globals.h"\nusing namespace GBENGINE_DLL; /* engine globals are modeled namespaced; original source references them bare */', 1)
+    open(f, 'w').write(t); print('s) using GBENGINE_DLL ✓')
+
+# t) explicit ctor/dtor call syntax (VC6 rejects free-form `T::T(x)` / `T::~T(x)`; it
+#    accepts pointer forms `p->~T()`. Placement-new for ctor (same rationale as q).
+#    dtor flag args (deleting-dtor bool) are handled by callers explicitly (the
+#    `if (!(flag & 1))` pattern follows in decomp output), so the plain dtor call
+#    preserves behavior; binary: ??1gbLightObj@@QAEXXZ takes no args.
+CTOR2_PAT = re.compile(r'\b([A-Za-z_]\w*)::\1\(\s*([^()]+?)\s*\)')
+m4 = 0
+for f in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    t = open(f, errors='ignore').read(); o = t
+    def _ctor2(mm):
+        cls, arg = mm.group(1), mm.group(2).strip()
+        # skip dtor form (handled below), skip if arg is not plausibly a pointer expr
+        return f'new ({arg}) {cls}()'
+    # only rewrite `T::T(` where the WHOLE match is a ctor (name==class); note the
+    # regex `T::T` inherently matches ctor-only. dtor has ~ so untouched here.
+    t = CTOR2_PAT.sub(_ctor2, t)
+    # dtor free-form: `T::~T(args)` → `((T*)(arg0))->~T()` — arg0 = first arg text;
+    # args may contain nested parens (casts like (uint8_t)(uintptr_t)pThis) — match a
+    # balanced single nesting level.
+    dtor_pat = re.compile(r'\b([A-Za-z_]\w*)::~\1\(\s*((?:[^()]|\((?:[^()]|\([^()]*\))*\))*?)\s*\)')
+    def _dtor(mm):
+        cls, arg = mm.group(1), mm.group(2).strip()
+        return f'(({cls}*)({arg}))->~{cls}()'
+    t = dtor_pat.sub(_dtor, t)
+    if t != o: open(f, 'w').write(t); m4 += 1
+print('t) ctor/dtor explicit-call rewrites:', m4)
+
+# u) CRT/SEH helper forward decls: decomp emits calls to `__CxxThrowException_8` /
+#    `__CallSettingFrame_12` (MSVC EH runtime helpers Ghidra named) whose definitions sit
+#    at file tail (227483+/232148) but call sites at 5537/227282 — C2065. These are real
+#    functions Ghidra decompiled into this TU; their true bodies are CRT-internal, so the
+#    definitions here are reconstructed placeholders — at link they may resolve to CRT
+#    symbols (revisit at wine_link). Declaring them before use is honest ordering repair.
+#    operator_new is already declared by o).
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+add = ''
+if '__CxxThrowException_8' not in t:
+    add += 'void __CxxThrowException_8(void* pExceptionObject, const void* pThrowInfo);\n'
+if '__CallSettingFrame_12' not in t:
+    add += 'int __CallSettingFrame_12(void* pFrame, void* pDispatch, int dwFlags);\n'
+if add:
+    t += '\n/* MSVC EH runtime helpers referenced by decompiled SEH bodies (link: revisit) */\n' + add
+    open(f, 'w').write(t); print('u) EH helper decls ✓')
+
+# q2) <new.h> for placement new (VC6 era header; modern <new> also fine via shim chain)
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+if '#include <new.h>' not in t:
+    t += ('\n/* placement new (deepfix q rewrites); VC6 native header */\n'
+          '#include <new.h>\n')
+    open(f, 'w').write(t); print('q2) <new.h> shim ✓')
 print('deepfix done')

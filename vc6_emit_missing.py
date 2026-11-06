@@ -29,7 +29,16 @@ def map_type(dt):
     return TYPEMAP.get(dt.strip(), dt.strip())
 
 _sdk = {}
+# Windows DECLARE_HANDLE(H) expands to `struct H__ { int unused; }` under STRICT —
+# the literal name never appears in SDK headers, so the grep below misses it and emit v4
+# redefines the struct (C2011). Exempt the __-suffixed handle family up front.
+_HANDLE_MACRO_NAMES = {
+    'HWAVEOUT__', 'HWAVEIN__', 'HMIDI__', 'HMIDIIN__', 'HMIDIOUT__', 'HMIDISTRL__',
+    'HMIXER__', 'HDRVR__', 'HWIDGET__', 'HACM__', 'HACMDRIVER__', 'HACMOBJ__',
+    'HACMSTREAM__', 'HCONV__', 'HCONVLIST__', 'HDDE__', 'HSZ__', 'HKL__', 'HRAWINPUT__',
+}
 def sdk_def(n):
+    if n in _HANDLE_MACRO_NAMES: return True
     if n in _sdk: return _sdk[n]
     hit = False
     for d in SDK:
@@ -152,6 +161,21 @@ for n in ordered:
         dt = f.get('dataType','')
         if '*' not in dt:
             block_value_bases.add(base_of(dt))
+# transitive closure: a hoisted def whose OWN by-value members name later types must
+# bring those along (gbVertexPool -> gbChain1D regression, 2026-11-07: nsfix decl
+# insertions shift relative order between runs, so one-shot hoist order is not stable).
+# Iterate: if a name in block_value_bases has a def whose own by-value members name a
+# type NOT in the set, add it — until fixpoint.
+for _ in range(10):
+    grew = False
+    for n in list(block_value_bases):
+        for f in (snap.get(n) or {}).get('fields') or []:
+            dt = f.get('dataType','')
+            if '*' not in dt:
+                b = base_of(dt)
+                if b and b not in block_value_bases and b in snap:
+                    block_value_bases.add(b); grew = True
+    if not grew: break
 def _scan_depth(line, depth):
     j, n = 0, len(line)
     while j < n:
@@ -181,30 +205,6 @@ def collect_spans():
             spans[name] = (d0, j); i = j+1; continue
         i += 1
     return spans
-hoisted = []
-_moved = set()
-for _round in range(80):
-    spans = collect_spans()
-    moved = False
-    for name, (d0, d1) in sorted(spans.items(), key=lambda kv: kv[1][0]):
-        if d0 <= floor + 1 or name in _moved or sdk_def(name): continue
-        # BY-VALUE use before def (pointer uses are covered by fwd decls — not a reason to move)
-        fu = None
-        for i2, l2 in enumerate(lines):
-            if d0 <= i2 <= d1: continue
-            if re.match(r'\s*struct\s+%s\s*;' % name, l2): continue
-            if re.match(r'\s*(?:/\*[^*]*\*/\s*)?%s\s+\w+\s*(?:\[[^\]]*\])?\s*;' % re.escape(name), l2):
-                fu = i2; break   # `Type field;` / `Type arr[N];` — no pointer
-        needed = (fu is not None and fu < d0) or (name in block_value_bases)
-        if not needed: continue
-        seg = lines[d0:d1+1]
-        del lines[d0:d1+1]
-        lines[floor+1:floor+1] = seg
-        hoisted.append(name); _moved.add(name); moved = True
-        break   # indices shifted → rescan
-    if not moved: break
-if hoisted: print('hoisted:', hoisted)
-
 if not ordered and not hoisted:
     print('emit v4: nothing'); raise SystemExit(0)
 
@@ -241,3 +241,50 @@ tgt = max(tgt, floor + 1)
 lines[tgt:tgt] = block
 open(H, 'w').writelines(lines)
 print('emit v4: %d defs @%d (%s)' % (len(ordered)+1, tgt+1, ','.join(ordered)))
+
+# 8) post-emit hoist: defs whose by-value use precedes their position — run AFTER the
+#    emit block lands so positions include the block (gbVertexPool@emit-block uses
+#    gbChain1D; if gbChain1D sits later (prev-run emit tail), move it above the user).
+#    Target: immediately before the FIRST by-value user line.
+hoisted2 = []
+for _round in range(80):
+    lines = open(H, errors='ignore').readlines()
+    floor = max([i for i,l in enumerate(lines) if l.startswith('#include')] or [0])
+    moved = False
+    # collect spans
+    spans = {}
+    i = 0
+    while i < len(lines):
+        m = re.match(r'^(struct|enum)\s+(\w+)\s*\{', lines[i])
+        if m:
+            name = m.group(2); d0 = i; depth = 0; j = i
+            while j < len(lines):
+                depth += lines[j].count('{') - lines[j].count('}')
+                if depth == 0 and j > i:
+                    spans[name] = (d0, j); i = j + 1; break
+                j += 1
+            else:
+                i += 1
+            continue
+        i += 1
+    for name, (d0, d1) in sorted(spans.items(), key=lambda kv: kv[1][0]):
+        if sdk_def(name): continue
+        fu = None
+        for i2, l2 in enumerate(lines):
+            if d0 <= i2 <= d1: continue
+            if re.match(r'\s*struct\s+%s\s*;' % name, l2): continue
+            if re.match(r'\s*(?:/\*[^*]*\*/\s*)?%s\s+\w+\s*(?:\[[^\]]*\])?\s*;' % re.escape(name), l2):
+                fu = i2; break
+        if fu is not None and fu < d0:
+            seg = lines[d0:d1+1]
+            del lines[d0:d1+1]
+            # target: right after the include floor — before ALL defs, stable and
+            # cannot land inside another struct. Rescan (break) makes order converge:
+            # dependencies get hoisted in later rounds, ending above their users.
+            lines[floor+1:floor+1] = seg
+            hoisted2.append(name); moved = True
+            break
+    if not moved: break
+if hoisted2:
+    open(H, 'w').writelines(lines)
+    print('post-emit hoist:', hoisted2)
