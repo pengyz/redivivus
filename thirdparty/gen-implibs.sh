@@ -41,6 +41,37 @@ exports() {
 # _BinkClose_4@4. The generator drops that suffix; until a regen carries the
 # change through, this alias keeps the executable linkable, and it resolves to
 # the same real DLL entry point either way.
+# ---------------------------------------------------------------------------
+# GBENGINE.DLL — PAL3.exe imports it as its 7th DLL (import descriptor [6],
+# FirstThunk 0x16a1f4; ~250 of its 1019 C++ mangled exports are bound into
+# PAL3's IAT at 0x56a000..0x56a5dc). Unlike the Bink/Smack __stdcall names,
+# these are VC6 C++ mangled symbols with NO leading underscore, so the def
+# keeps each name verbatim: the archive symbol and the loader import name are
+# the same string. The import library must come from VC6's own lib.exe
+# (dlltool would prepend `_` and mint a symbol nothing references).
+#
+#   thirdparty/gen-implibs.sh   # also regenerates gbengine.def/.lib
+#
+# The authoritative def (with original ordinals @1..@1019) lives in the
+# A-track engine project: <repo>/gbengine/gbengine.def — same export set,
+# derived from the same shipped DLL. This thirdparty copy is the B-track's
+# plain-name variant for the PAL3.exe link (ordinal surface not yet pinned).
+# ---------------------------------------------------------------------------
+GBENGINE_DLL=${GBENGINE_DLL:-$HOME/workspace/PAL3Decomp/original/gbengine.dll}
+VC6_BIN=${VC6_BIN:-$HOME/workspace/PAL3Decomp/tools/vc6/Bin}
+if [ -f "$GBENGINE_DLL" ]; then
+  { echo "LIBRARY GBENGINE.DLL"
+    echo "EXPORTS"
+    "$OD" -p "$GBENGINE_DLL" | awk '/^[[:space:]]*\[[[:space:]]*[0-9]+\][[:space:]]+\?/ { print "    " $NF }' | sort -u
+  } > "$HERE/gbengine.def"
+  (cd "$HERE" && WINEDEBUG=-all wine "Z:$(echo "$VC6_BIN" | sed 's|/|\\\\|g')\\\\LIB.EXE" \
+      /DEF:"Z:$(echo "$HERE" | sed 's|/|\\\\|g')\\\\gbengine.def" \
+      /MACHINE:IX86 /OUT:"Z:$(echo "$HERE" | sed 's|/|\\\\|g')\\\\gbengine.lib" >/dev/null)
+  rm -f "$HERE/gbengine.exp"
+  printf '%-9s %4s exports -> gbengine.lib (VC6 lib.exe)\n' gbengine \
+    "$(grep -c '^    ' "$HERE/gbengine.def")"
+fi
+
 for d in binkw32 smackw32; do
   { echo "LIBRARY $d.dll"; echo "EXPORTS"
     exports "$DLLDIR/$d.dll" | while read -r e; do
@@ -79,3 +110,4 @@ done
   echo "# decoration in both d2-1.00-binaries and 1.07-lod-base/pe-files."
   shasum -a 256 "$DLLDIR"/{binkw32,smackw32,ijl11}.dll
 } > "$HERE/PROVENANCE"
+
