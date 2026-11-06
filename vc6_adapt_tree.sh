@@ -98,8 +98,12 @@ print('cpp g_* 裸名修:', n)
 PYEOF2
 # 9f) 缺口逐字节回填（init 逐字节渲染 vs def 字段渲染不一致=C2078 级联根）
 python3 "$(dirname "$0")/vc6_gapfill.py"
-# 9g-l) 深体六修（vfs::剥/TryExpand补参/FUN014b0返型/Dialog补声明/SQRT宏/this局部名）
+# 9g-l) 深体六修（vfs::剥/TryExpand补参[A级0x4012c1 ret 0x14]/FUN014b0返型+真return[A级eax路径]/
+#        Rsrc_Dialog删发射[A级RT_DIALOG 0x6a_804]/SQRT宏/this局部名）
 python3 "$(dirname "$0")/vc6_deepfix.py"
 # 10) 缺定义型补发（快照数据驱动）
 python3 "$(dirname "$0")/vc6_emit_missing.py"
+# 10b) Type::method→成员解析（gbengine.dll 导出表 A 级签名库；调用点 T::m(A0,..)→A0.m(..)/A0->m(..)；
+#      pass0 通用成员可见性清扫兜底 emit-v4 defs 的指针成员缺口——故必须在 emit 之后）
+python3 "$(dirname "$0")/vc6_ns_freefn.py"
 echo "vc6_adapt_tree: ok ($(ls "$OUT"/cstdint "$OUT"/wintrust.h 2>/dev/null | wc -l) headers in tree root)"

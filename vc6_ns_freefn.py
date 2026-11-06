@@ -1,0 +1,416 @@
+#!/usr/bin/env python3
+"""B-side namespace-function resolver (idempotent), for vc6_adapt_tree.sh (step after deepfix).
+
+Problem: Ghidra FID tags statically-linked GBENGINE functions with class-qualified
+names (gbVec3D::Length). reconstruct renders CALL SITES as `T::m(args)` but never
+emits the declarations (extract skips FID/library functions → bodies absent too).
+VC6 fails C2039/C2065 on every such call - a large family currently hidden behind
+the C1003 truncation; fixing earlier errors surfaces them.
+
+Signature source (A-level): original/gbengine.dll export table - 2038 C++ mangled
+exports encode full signatures. Same code is statically linked into PAL3.exe
+(FID byte-match), so dll signatures are binary truth for these functions.
+
+Per matched (T, m):
+  1) emit `ret m(params) const;` member decl into `struct T {...}` (provenance
+     comment = mangled export name); idempotent via `/* nsfix:T */` marker.
+  2) rewrite call sites `T::m(A0, rest)` -> `A0.m(rest)` when A0 starts with `&`
+     (object), else `A0->m(rest)` (pointer). A0 == this (ECX, __thiscall).
+ctor/operator forms: v1 SKIPPED (statement-level rewrite needed), counted.
+Unmatched pairs reported, never guessed. No fabricated signatures.
+Run from pal3-redivivus/: python3 vc6_ns_freefn.py [--dry]
+"""
+import re, sys, glob, subprocess
+
+DLL = '/home/peng/workspace/PAL3Decomp/original/gbengine.dll'
+OUT = 'reconstruct-out'
+SKIP_PREFIX = ('std', 'GBENGINE_DLL', 'PAL3')
+DRY = '--dry' in sys.argv
+
+BASIC = {'X': 'void', 'M': 'float', 'H': 'int', 'I': 'unsigned int', 'N': 'bool',
+         'D': 'char', 'E': 'unsigned char', 'K': 'unsigned long', 'J': 'long',
+         'F': 'short', 'G': 'unsigned short'}
+
+class TypeParser:
+    """Minimal MSVC type-code parser (subset used by GBENGINE exports)."""
+    def __init__(self, s, backrefs, enums=None):
+        self.s, self.i, self.br, self.failed = s, 0, backrefs, False
+        self.enums = enums
+    def eat(self, tok):
+        if self.s.startswith(tok, self.i): self.i += len(tok); return True
+        return False
+    def seg(self):  # name segment up to '@' (consumes the '@')
+        j = self.s.find('@', self.i)
+        if j < 0: self.failed = True; return None
+        n = self.s[self.i:j]; self.i = j + 1; return n
+    def _qualified(self, prefix3):
+        # name segment follows; a digit segment is a backref into self.br
+        self.i += len(prefix3)
+        n = self.seg()
+        if self.s[self.i:self.i + 1] == '@': self.i += 1
+        if n and n.isdigit():
+            idx = int(n)
+            n = self.br[idx] if idx < len(self.br) else n
+        return n
+    def type(self):
+        # MSVC rule: each P/A/R is followed by an A/B pointee modifier (A=near, B=const).
+        # PAX = void*, PBD = const char*, AAU = struct&, ABU = const struct&, PAPAU = struct**
+        mods = []
+        while True:
+            if self.eat('P'): mods.append('*')
+            elif self.eat('A'): mods.append('&')
+            elif self.eat('R'): mods.append('*&')
+            else: break
+            if self.eat('B'): mods.append('const ')
+            else: self.eat('A')  # near pointee marker - no-op
+        t = None
+        c2 = self.s[self.i:self.i + 2]
+        if self.s.startswith('?A', self.i) or self.s.startswith('?B', self.i):
+            self.i += 2                        # by-value class return cv marker
+        if c2 in ('AU', 'AV'):
+            n = self._qualified(c2); t = n or '?'
+        elif c2 == '_K': self.i += 2; t = '__int64'
+        elif c2 == '_N': self.i += 2; t = 'bool'
+        else:
+            c = self.s[self.i:self.i + 1]
+            if c in ('U', 'V'):  # bare struct/class (P/A + B already consumed)
+                n = self._qualified(c); t = n or '?'
+            elif c == 'W':       # enum: W4<name>@@
+                self.i += 1
+                self.eat('4') or self.eat('0') or self.eat('1') or self.eat('2')
+                n = self.seg()
+                if self.s[self.i:self.i + 1] == '@': self.i += 1
+                t = n or '?'
+                if getattr(self, 'enums', None) is not None: self.enums.add(n)
+            elif c in BASIC: self.i += 1; t = BASIC[c]
+            else:
+                self.failed = True; return None
+        for m in reversed(mods):
+            t = t + m if m in ('*', '&', '*&') else (m + t)
+        return t
+
+def load_siglib():
+    out = subprocess.run(['objdump', '-p', DLL], capture_output=True, text=True).stdout
+    mangled = re.findall(r'^\s*\[\s*\d+\]\s+(\?[A-Za-z_?][^ ]*)\s*$', out, re.M)
+    lib, unsup = {}, 0
+    for mn in mangled:
+        e = parse_export(mn)
+        if not e: unsup += 1; continue
+        ret, params, ok = parse_sig(e)
+        if not ok: unsup += 1; continue
+        e['ret'], e['params'] = ret, params
+        lib.setdefault((e['cls'], e['method']), e)
+    return lib, len(mangled), unsup
+
+def parse_export(mn):
+    # ctor/op forms: `??<1-char op><Class>@@` - op code glues directly to class name
+    # (??0 ctor, ??1 dtor, ??2/3 new/delete, ??4 op=, ??8 op==, ??G op- ...). No '@' between.
+    m = re.match(r'\?\?([\dA-Za-z_])([A-Za-z_][A-Za-z0-9]*)@@[AQUV][AB][EF]@?(.*)$', mn)
+    if m:
+        return {'cls': m.group(2), 'method': '??' + m.group(1), 'kind': 'ctor',
+                'rest': m.group(3), 'mangled': mn}
+    m = re.match(r'\?([A-Za-z_0-9]+)@([A-Za-z_0-9]+)@@[AQUV]([AB])[EF](.*)$', mn)
+    if m:
+        method = m.group(1)
+        kind = 'op' if method.startswith('operator') else 'method'
+        return {'cls': m.group(2), 'method': method, 'kind': kind, 'const': m.group(3) == 'B',
+                'rest': m.group(4), 'mangled': mn}
+    return None
+
+def parse_sig(e):
+    """Parse ret+params for non-ctor; ctor params only (ret=None).
+    Backref table: plain methods `?m@C@@` seed [m, C] (slot1=C); ctor/op `??nC@@`
+    seed [C] (slot0=C) - empirically confirmed on gbengine.dll exports
+    (?DotProduct@gbVec3D@@…PBU1@ → 1=gbVec3D; ??4gbVec3D@@…ABU0@ → 0=gbVec3D)."""
+    br = [e['cls']] if e['kind'] == 'ctor' else [e['method'], e['cls']]
+    enums, named = set(), set()
+    def _grow(s):
+        # backref table grows with every fully-spelled named type (ret, then each param):
+        # confirmed by ?GetColumn@gbMatrix4@@QBEPAUgbVec3D@@PAU2@H@Z (2 -> ret's gbVec3D)
+        for tok in re.findall(r'[A-Za-z_]\w*', s):
+            if tok not in ('void','char','int','float','bool','unsigned','long','short','const','struct','class'):
+                if tok not in br: br.append(tok)
+    rest = e['rest']
+    if e['kind'] != 'ctor':
+        p = TypeParser(rest, br, enums)
+        ret = p.type()
+        if p.failed or ret is None: return None, [], False
+        rest = rest[p.i:]
+        _grow(ret)
+    else:
+        ret = None
+    params = []
+    p = TypeParser(rest, br, enums)
+    while not p.failed and p.i < len(rest):
+        if p.eat('@') or p.eat('Z'): break
+        c = p.s[p.i:p.i+1]
+        if c.isdigit() and params:
+            # bare digit at param position = TYPE backref: reuse an earlier param's type
+            # (e.g. `IPAD0@Z` -> (unsigned, char*, char*): GetEventTime@gbActor)
+            idx = int(c)
+            if idx >= len(params): p.failed = True; break
+            params.append(params[idx]); p.i += 1; continue
+        t = p.type()
+        if t is None or p.failed: return ret, params, False
+        if t == 'void': break  # XZ form (empty param list)
+        params.append(t)
+        _grow(t)
+    if p.failed: return ret, params, False
+    # collect named struct/class occurrences from rendered strings (word tokens, not basic types)
+    import re as _re
+    for s in ([ret] if ret else []) + params:
+        for tok in _re.findall(r'[A-Za-z_][A-Za-z0-9_]*', s):
+            if tok not in ('void','char','int','float','bool','unsigned','long','short','const','struct','class'):
+                named.add(tok)
+    e['enums'], e['named'] = enums, named
+    return ret, params, True
+
+# ---------------------------------------------------------------------------
+
+CALL_RE = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*)::([A-Za-z_~][A-Za-z0-9_]*)\s*\(')
+
+def split_args(s, start):
+    """s[start]=='(' → (first_arg, rest_str, idx_after_close). Depth-safe."""
+    depth, j, first_end = 0, start, None
+    while j < len(s):
+        c = s[j]
+        if c in '([{': depth += 1
+        elif c in ')]}':
+            depth -= 1
+            if depth == 0: break
+        elif c == ',' and depth == 1 and first_end is None:
+            first_end = j
+        j += 1
+    inner = s[start + 1:j]
+    if first_end is None:
+        return inner.strip(), '', j + 1
+    return inner[:first_end - start - 1].strip(), inner[first_end - start:], j + 1
+
+def brace_close(t, open_idx):
+    depth = 0
+    for j in range(open_idx, len(t)):
+        if t[j] == '{': depth += 1
+        elif t[j] == '}':
+            depth -= 1
+            if depth == 0: return j
+    return -1
+
+def find_struct_def(headers, cls):
+    pat = re.compile(r'^struct\s+%s\s*\{' % re.escape(cls), re.M)
+    for path, t in headers:
+        m = pat.search(t)
+        if m:
+            close = brace_close(t, t.index('{', m.start()))
+            if close > 0: return path, close
+    return None
+
+def main():
+    lib, total, unsup = load_siglib()
+    print(f'nsfix: siglib {len(lib)} entries ({total} exports, {unsup} unsupported)')
+    cpps = sorted(glob.glob(OUT + '/**/*.cpp', recursive=True))
+    headers = {f: open(f, errors='ignore').read()
+               for f in sorted(glob.glob(OUT + '/**/*.h', recursive=True))}
+
+    # pass 0: generic member-visibility sweep — any struct member whose type name is first
+    # declared AFTER the struct's own position gets a fwd at file top. KIND-AWARE + global:
+    #   - name declared as struct/class anywhere -> safe to `struct X;` fwd (position fix)
+    #   - name only ever enum/typedef -> NEVER struct-fwd (C2371 clash) — skip & count
+    #   - name unknown everywhere -> fwd (missing-type gap, e.g. emit-v4 pointer members)
+    #   By-value member gaps stay emit_missing's hoist responsibility.
+    global_kinds = {}   # name -> set of decl kinds across ALL headers
+    for t in headers.values():
+        for m2 in re.finditer(r'^\s*(struct|class|union|enum)\s+(\w+)', t, re.M):
+            global_kinds.setdefault(m2.group(2), set()).add(m2.group(1))
+        for m2 in re.finditer(r'^\s*typedef\s+[^;]+?\s(\w+)\s*;', t, re.M):
+            global_kinds.setdefault(m2.group(1), set()).add('typedef')
+    member_fwd, skipped_kinds = {}, {}
+    member_re = re.compile(r'^\s*/\*[^*]*\*/\s+(.+?);\s*$', re.M)
+    for path, text in headers.items():
+        first_off = {}
+        for m2 in re.finditer(r'^\s*(?:struct|class|union|enum)\s+(\w+)', text, re.M):
+            first_off.setdefault(m2.group(1), m2.start())
+        for m2 in re.finditer(r'^\s*typedef\s+[^;]+?\s(\w+)\s*;', text, re.M):
+            first_off.setdefault(m2.group(1), m2.start())
+        names = member_fwd.setdefault(path, [])
+        for m2 in re.finditer(r'^struct\s+(\w+)\s*\{', text, re.M):
+            close2 = text.find('\n};', m2.start())
+            if close2 < 0: continue
+            for mm in member_re.finditer(text, m2.end(), close2):
+                decl = mm.group(1)
+                if '*' in decl or '&' in decl: is_indirect = True
+                else: is_indirect = False
+                toks = decl.replace('*', ' ').replace('&', ' ').split()
+                if len(toks) < 2: continue
+                head = toks[0]
+                if head in ('unsigned','signed','long','short','struct','class','union','enum','const'):
+                    if len(toks) < 3: continue
+                    head = toks[1]
+                if head in BASIC.values(): continue
+                if head in ('DWORD','WORD','BYTE','BOOL','uint','ushort','size_t','wchar_t',
+                            'uint8_t','uint16_t','uint32_t','uint64_t','int8_t','int16_t',
+                            'int32_t','int64_t','LPARAM','WPARAM','HANDLE','HWND'): continue
+                if not re.match(r'^[A-Za-z_]\w+$', head): continue
+                if first_off.get(head, 1 << 60) < m2.start(): continue   # already visible here
+                kinds = global_kinds.get(head, set())
+                if kinds and not (kinds & {'struct', 'class', 'union'}):
+                    skipped_kinds[head] = sorted(kinds); continue       # enum/typedef-only: no fwd
+                if not is_indirect:
+                    continue                                             # by-value: not fwd's business
+                if head not in names:
+                    names.append(head); first_off[head] = 0
+    if skipped_kinds:
+        top_k = sorted(skipped_kinds.items())[:6]
+        print('nsfix pass0 skipped enum/typedef-name members:', top_k)
+    # pass 1: which (cls, method) method-form calls exist (for stats + skip counting)
+    wanted = {}   # cls -> set(method)  - from BOTH live `T::m(` sites and already-rewritten
+                  # member calls, so decl emission is independent of call-site state (idempotent)
+    unmatched, skips = {}, {'ctor': 0, 'op': 0}
+    member_re = re.compile(r'(?:\.|->)([A-Za-z_][A-Za-z0-9_]*)\s*\(')
+    decl_cls = {}   # cls -> set(method) that dll exports and struct def exists (superset)
+    for (cls, meth), e in lib.items():
+        if e['kind'] == 'method': decl_cls.setdefault(cls, set()).add(meth)
+    for f in cpps:
+        t = open(f, errors='ignore').read()
+        for m in CALL_RE.finditer(t):
+            cls, meth = m.group(1), m.group(2)
+            if cls in SKIP_PREFIX: continue
+            e = lib.get((cls, meth))
+            if e is None and meth == cls: e = lib.get((cls, '??0'))          # T::T( → ??0 ctor
+            if e is None and meth.startswith('~'): e = lib.get((cls, '??1')) # T::~T( → ??1 dtor
+            if e is None: e = lib.get((cls, '??' + meth))                     # other ??-forms
+            if e is None:
+                unmatched[f'{cls}::{meth}'] = unmatched.get(f'{cls}::{meth}', 0) + 1
+            elif e['kind'] == 'ctor': skips['ctor'] += 1
+            elif e['kind'] == 'op':   skips['op'] += 1
+            else: wanted.setdefault(cls, set()).add(meth)
+    # already-rewritten sites keep their classes in `wanted` via the export superset below
+    for cls in decl_cls:
+        wanted.setdefault(cls, set(decl_cls[cls]))
+
+    # pass 2: emit decl blocks. Visibility discipline (per-HEADER, position-aware):
+    #   a type is usable only if declared in the SAME header before the block. Missing
+    #   struct/class -> forward-declare at file TOP (before any use; later real def coexists
+    #   legally). typedef'd names never get a struct fwd (C2371 clash). Missing enum passed
+    #   by value -> int substitution (VC6 ABI-identical). By-value use of an undefined
+    #   struct -> skip that decl (counted), never guessed.
+    decl_ok, decl_skip = {}, []
+    fwd_by_file = {}          # path -> ordered names to forward-declare at file top
+    skipped_byval = 0
+    for cls, meths in sorted(wanted.items()):
+        loc = find_struct_def(list(headers.items()), cls)
+        if loc is None:
+            decl_skip.append(cls); continue
+        path, close = loc
+        text = headers[path]
+        marker = f'/* nsfix:{cls} -'
+        if marker not in text:
+            # position-aware visibility: name -> first declaration offset in THIS header
+            first_off = {}
+            for m2 in re.finditer(r'^\s*(?:struct|class|union|enum)\s+(\w+)', text, re.M):
+                first_off.setdefault(m2.group(1), m2.start())
+            for m2 in re.finditer(r'^\s*typedef\s+[^;]+?\s(\w+)\s*;', text, re.M):
+                first_off.setdefault(m2.group(1), m2.start())
+            lines = [f'    /* nsfix:{cls} - sigs from gbengine.dll exports (A-level); bodies pending extract (FID skip in B-track extract) */']
+            fwd_names = fwd_by_file.setdefault(path, [])
+            for meth in sorted(meths):
+                e = lib[(cls, meth)]
+                ret = e['ret'] or 'void'
+                skip = False
+                def ensure(tok, why):
+                    nonlocal skip
+                    if tok in ('void','char','int','float','bool','unsigned','long','short','const'): return
+                    if first_off.get(tok, 1 << 60) < close: return   # declared before use point
+                    if tok not in fwd_names:
+                        fwd_names.append(tok); first_off[tok] = 0    # batch sits at file top
+                for tok in re.findall(r'[A-Za-z_]\w*', ret):
+                    if tok in e.get('enums', ()) and first_off.get(tok, 1 << 60) >= close:
+                        ret = ret.replace(tok, 'int')   # by-value enum ret, undefined -> int (ABI-equal)
+                        continue
+                    ensure(tok, 'ret')
+                params = []
+                for pstr in e['params']:
+                    p = pstr
+                    is_ptr = p.rstrip().endswith('*') or p.rstrip().endswith('&')
+                    for tok in re.findall(r'[A-Za-z_]\w*', pstr):
+                        if tok in e.get('enums', ()):
+                            if first_off.get(tok, 1 << 60) >= close:
+                                p = p.replace(tok, 'int') + ' /* nsfix: enum %s undefined -> int (VC6 ABI-equal) */' % tok
+                            continue
+                        ensure(tok, 'param')
+                    if not is_ptr and p == pstr:
+                        named = [t for t in re.findall(r'[A-Za-z_]\w*', pstr)
+                                 if t not in ('int','float','char','bool','unsigned','long','short','const','void')]
+                        if named: skip = True   # by-value named type: fwd is not enough
+                    params.append(p)
+                if skip:
+                    skipped_byval += 1
+                    continue
+                ps = ', '.join(params)
+                constkw = ' const' if e.get('const') else ''
+                lines.append(f'    {ret} {meth}({ps}){constkw}; /* {e["mangled"]} */')
+            insert = '\n'.join(lines) + '\n'
+            text = text[:close] + insert + text[close:]
+            if not DRY:
+                open(path, 'w').write(text)
+            headers[path] = text
+        decl_ok[cls] = path
+    # merge generic member fwd sweep into per-file batches
+    for path, names in member_fwd.items():
+        tgt = fwd_by_file.setdefault(path, [])
+        for n in names:
+            if n not in tgt: tgt.append(n)
+    # hoist fwd batches to file top (before any struct def or use point)
+    for path, names in fwd_by_file.items():
+        if not names: continue
+        text = headers[path]
+        if '/* nsfix fwd batch */' in text: continue
+        fwd_txt = ('/* nsfix fwd batch - forward decls for nsfix member decls; '
+                   'defined elsewhere or later in this file */\n'
+                   + '\n'.join(f'struct {n};' for n in names) + '\n')
+        # insert AFTER `#pragma once` if present (MSVC: pragma once must precede any code),
+        # else after the leading comment block
+        lines = text.split('\n')
+        k = 0
+        po = next((j for j, l in enumerate(lines) if l.strip() == '#pragma once'), None)
+        if po is not None:
+            k = po + 1
+        else:
+            while k < len(lines) and (lines[k].startswith('//') or lines[k].strip() == ''):
+                k += 1
+        text = '\n'.join(lines[:k]) + '\n' + fwd_txt + '\n'.join(lines[k:])
+        if not DRY:
+            open(path, 'w').write(text)
+        headers[path] = text
+    if skipped_byval:
+        print(f'nsfix: skipped by-value-undef decls: {skipped_byval}')
+    # pass 3: rewrite call sites (only classes whose decl landed)
+    n_rw = 0
+    for f in cpps:
+        t = open(f, errors='ignore').read()
+        o = t
+        pos = 0
+        while True:
+            m = CALL_RE.search(t, pos)
+            if not m: break
+            cls, meth = m.group(1), m.group(2)
+            if cls not in decl_ok or meth not in wanted.get(cls, set()):
+                pos = m.end(); continue
+            op = t.index('(', m.end() - 1)
+            a0, rest, after = split_args(t, op)
+            if not a0: pos = m.end(); continue
+            if a0.startswith('&'):
+                newcall = f'{a0[1:].strip()}.{meth}({rest})'
+            else:
+                newcall = f'{a0}->{meth}({rest})'
+            t = t[:m.start()] + newcall + t[after:]
+            pos = m.start() + len(newcall)
+            n_rw += 1
+        if not DRY and t != o:
+            open(f, 'w').write(t)
+    print(f'nsfix: decl classes={len(decl_ok)} skip-nodef={decl_skip} rewritten={n_rw} '
+          f'skip ctor={skips["ctor"]} op={skips["op"]}')
+    top = sorted(unmatched.items(), key=lambda x: -x[1])[:12]
+    print('nsfix unmatched top:', top)
+
+if __name__ == '__main__':
+    main()
