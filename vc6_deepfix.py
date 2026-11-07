@@ -187,11 +187,11 @@ if 'void *operator_new' not in t:
 #     standard spelling; semantics = return the pointer (identity).
 f = 'reconstruct-out/d2_platform.h'
 t = open(f, errors='ignore').read()
-if 'operator new(size_t, void*' not in t and 'operator new(size_t,void*' not in t:
-    t += ('\n/* placement form for deepfix q rewrites (identity, standard semantics) */\n'
-          '#include <stddef.h>\n'
-          'inline void *__cdecl operator new(size_t, void *p) { return p; }\n')
-    open(f, 'w').write(t); print('q3) placement new inline ✓')
+# <new.h> (VC6 SDK) already defines the placement form (operator new(size_t, void*_P));
+# a second inline body here collides C2084. Only ensure <new.h> is included.
+if '#include <new.h>' not in t:
+    t += '\n#include <new.h>\n'
+    open(f, 'w').write(t); print('q3) <new.h> ensure ✓')
 
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
