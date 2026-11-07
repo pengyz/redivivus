@@ -143,37 +143,6 @@ if 'define nullptr' not in t:
           '#ifndef nullptr\n#define nullptr NULL\n#endif\n')
     open(f, 'w').write(t); print('n) nullptr shim ✓')
 
-# o) operator_new decl: reconstruct CRT-maps MSVC `operator new` and emits bare calls
-#     (int-typed per Ghidra's undefined return) but never declares it (C2440 int->void*).
-#     Signature from call sites: (size_t) -> void*. Body = CRT at link (revisit wine_link).
-f = 'reconstruct-out/d2_platform.h'
-t = open(f, errors='ignore').read()
-if 'void *operator_new' not in t:
-    t += ('\n/* reconstruct CRT mapping: operator new helper — body is CRT at link (revisit) */\n'
-          'void *operator_new(unsigned int size);\n')
-    open(f, 'w').write(t); print('o) operator_new decl ✓')
-
-# w) function-address pointer slots (globals): `undefined * X = &func;` — VC6 rejects
-#     the function->object pointer conversion outright (C2440). The cast spells what
-#     the slot is: an address holder. Semantics preserved byte-for-byte.
-import glob as _g2
-m6 = 0
-for f2 in _g2.glob('reconstruct-out/globals/*.cpp'):
-    t = open(f2, errors='ignore').read(); o2 = t
-    t2 = re.sub(r'(\bundefined\s*\*\s+\w+\s*=\s*)&(\w+)', r'\1(undefined *)&\2', t)
-    if t2 != o2: open(f2, 'w').write(t2); m6 += 1
-print('w) fn-addr slot casts:', m6)
-
-# y) empty initializers `T X = ;` — a renderer path emitted an empty value string
-#     (zero-value that the zero-elision did not catch). `T X;` is the same object;
-#     drop the `=`. Syntax-level, zero semantics.
-import glob as _g3
-m7 = 0
-for f3 in _g3.glob('reconstruct-out/**/*.cpp'):
-    t = open(f3, errors='ignore').read(); o3 = t
-    t3 = re.sub(r'=\s+;', ';', t)
-    if t3 != o3: open(f3, 'w').write(t3); m7 += 1
-print('y) empty-initializer drops:', m7)
 # z) elaborated specifier for function-shadowed global types: `PAL_GDB * g_pGDB` —
 #     a same-name FUNCTION declaration hides the struct name (C++ name hiding), and
 #     the plain pointer type resolves to the function (C2371 different basic types).
@@ -182,7 +151,8 @@ print('y) empty-initializer drops:', m7)
 #     a pure spelling fix, zero semantics.
 m8 = 0
 import os as _os
-for f4 in _g3.glob('reconstruct-out/globals/*.cpp'):
+import glob as _g3b
+for f4 in _g3b.glob('reconstruct-out/globals/*.cpp'):
     t = open(f4, errors='ignore').read()
     hh = _os.path.join(_os.path.dirname(f4), '..', '_unnamespaced.h')
     hh = _os.path.abspath(hh)
@@ -198,6 +168,19 @@ for f4 in _g3.glob('reconstruct-out/globals/*.cpp'):
     if m8:
         open(f4, 'w').write('\n'.join(out) + '\n')
 print('z) elaborated-type fixes:', m8)
+# o) operator_new decl — 【暂缓项·渲染器深水】声明门机制两层过滤
+#     (header.ts startsWith('operator')已修+file-static startsWith已修，但
+#     publicFunctions「跨TU才public」判定仍挡住同TU先用的它)。根修需动
+#     index.ts:3578 的 public 计算或 TU 内前向声明机制——另开专项。
+#     (CRT语义: Ghidra Library签名 operator new/__nh_malloc forwarder,
+#      自定义壳名不与CRT符号冲突，定义已在TU尾、只需声明先行)
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+if 'void *operator_new' not in t:
+    t += ('\n/* reconstruct CRT mapping: operator new helper — body is CRT at link (revisit) */\n'
+          'void *operator_new(unsigned int size);\n')
+    open(f, 'w').write(t); print('o) operator_new decl ✓')
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
@@ -378,35 +361,6 @@ if add:
     t += '\n/* MSVC EH runtime helpers referenced by decompiled SEH bodies (link: revisit) */\n' + add
     open(f, 'w').write(t); print('u) EH helper decls ✓')
 
-# v) missing trailing comma after brace-initialized members (syntax-level, semantics-free).
-#    Pattern: a designated-member line whose value ends in `}` (nested struct/array init)
-#    followed by another designated-member line but no comma — the renderer skipped the
-#    separator for nested values. C2143 'missing ; before {'. Adapt-layer syntax repair;
-#    renderer-side comma logic is a reconstruct deep-water item (ledger).
-m5 = 0
-for f in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
-    lines2 = open(f, errors='ignore').readlines()
-    n_fix = 0
-    for _i in range(len(lines2) - 1):
-        cur, nxt = lines2[_i], lines2[_i + 1]
-        # current line: ends with `}` (no comma/semicolon), next line is another member
-        cs = cur.rstrip()
-        if cs.endswith('}') and not cs.endswith(('},', '};', '{')):
-            ns = nxt.lstrip()
-            if ns.startswith('/* .') or ns.startswith('/* 0x') or ns.startswith('/* ['):
-                lines2[_i] = cs + ',\n'
-                n_fix += 1
-    if n_fix:
-        open(f, 'w').writelines(lines2); m5 += n_fix
-print('v) missing member commas repaired:', m5)
-
-# q2) <new.h> for placement new (VC6 era header; modern <new> also fine via shim chain)
-f = 'reconstruct-out/d2_platform.h'
-t = open(f, errors='ignore').read()
-if '#include <new.h>' not in t:
-    t += ('\n/* placement new (deepfix q rewrites); VC6 native header */\n'
-          '#include <new.h>\n')
-    open(f, 'w').write(t); print('q2) <new.h> shim ✓')
 # x) printf-family wrapper varargs: FUN_00553082 call sites carry 3/4/5 args
 #     (dst, fmt, ...) — cdecl caller-cleans, multiple ret paths in one body.
 f = 'reconstruct-out/_unnamespaced.h'
@@ -416,15 +370,4 @@ new_sig = 'uint32_t FUN_00553082(uint8_t * param_1, const char * param_2, ...); 
 if old_sig in t:
     t = t.replace(old_sig, new_sig)
     open(f, 'w').write(t); print('x) FUN_00553082 varargs ✓')
-# y2) declaration-shape repairs from VC6 C2664 first-errors (binary-adjudicated):
-#     - FUN_00553082 param1 = output buffer (char[260] passed) — void* (no type claim)
-#     - FUN_00553041 = forward wrapper @0x553041 (push [esp+4]; call 0x552fd4 — an
-#       atexit-family registrar); param1 is a function ADDRESS: void*, not uint32_t.
-f = 'reconstruct-out/_unnamespaced.h'
-t = open(f, errors='ignore').read(); o = t
-t = t.replace('uint32_t FUN_00553082(uint8_t * param_1, const char * param_2, ...);',
-              'uint32_t FUN_00553082(void * param_1, const char * param_2, ...);')
-t = t.replace('int FUN_00553041(uint32_t param_1); // 1.14d: 00553041',
-              'int FUN_00553041(void * param_1); // 1.14d: 00553041 (atexit-family forward wrapper)')
-if t != o: open(f, 'w').write(t); print('y2) declaration shapes ✓')
 print('deepfix done')
