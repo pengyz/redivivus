@@ -193,6 +193,58 @@ if '#include <new.h>' not in t:
     t += '\n#include <new.h>\n'
     open(f, 'w').write(t); print('q3) <new.h> ensure ✓')
 
+# y4) compiler-oracle symbol repair (2026-11-08): authoritative undeclared set =
+#     VC6 C2065 census (10 symbols). Idempotent by exact-decl-line presence.
+FIX_TABLE = {
+  'stack0x00000018': 'unsigned char stack0x00000018[0x28]; /* WNDCLASSA holder (frame slot, revisit) */',
+  'stack0x00000040': 'unsigned char stack0x00000040[0x104]; /* frame slot to 0x144 (revisit) */',
+  'stack0x00000144': 'unsigned char stack0x00000144[0x400]; /* EH record frame slot to 0x544 (revisit) */',
+  'stack0x00000544': 'unsigned char stack0x00000544[0x400]; /* frame slot to 0x944 (revisit) */',
+  'stack0x00000944': 'unsigned char stack0x00000944[0x400]; /* frame slot to 0xd44 (revisit) */',
+  'stack0x00000d44': 'unsigned char stack0x00000d44[0x400]; /* frame slot (revisit) */',
+  'stack0xffffffec': 'long stack0xffffffec[2]; /* POINT holder (frame slot, revisit) */',
+}
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+o = t
+m9 = 0
+# a) frame-slot locals: insert into the ENCLOSING function of the first use
+for sym, decl in sorted(FIX_TABLE.items(), key=lambda kv: -len(kv[0])):
+    if decl in t:   # already inserted (exact line)
+        continue
+    um = re.search(r'\n([^\n]*\b' + re.escape(sym) + '\b)', t)
+    if not um:
+        continue
+    pre_lines = t[:um.start()].split('\n')
+    def_i = None
+    for li in range(len(pre_lines) - 1, -1, -1):
+        s = pre_lines[li].strip()
+        if not s.endswith('{'):
+            continue
+        if s.startswith(('if', 'for', 'while', 'else', 'do', 'switch', '}', '/', '*', '+')):
+            continue
+        if '(' in s:
+            def_i = li
+            break
+    if def_i is None:
+        continue
+    pos = len('\n'.join(pre_lines[:def_i + 1])) + 1
+    t = t[:pos] + '    ' + decl + '\n' + t[pos:]
+    m9 += 1
+# b) externs for unresolved call targets (code exists, fn object missing)
+if 'func_0x0055ef80' in t and 'func_0x0055ef80(void' not in t:
+    t = t.replace('#include "globals/globals.h"\n',
+        '#include "globals/globals.h"\n'
+        '/* unresolved call targets: code exists at these addresses, Ghidra fn object\n'
+        '   missing - call-site-shaped externs; root fix = create fn in Ghidra (revisit) */\n'
+        'int func_0x0055ef80(void *a1, unsigned int a2, void *a3, void *a4, int a5);\n'
+        'int func_0x00553c00(void);\n', 1)
+# c) elaborated local (fn-shadow rule: CCBSystem fn hides struct CCBSystem)
+t = t.replace('CCBSystem* extraout_EAX;', 'struct CCBSystem* extraout_EAX;')
+if t != o:
+    open(f, 'w').write(t)
+print('y4) compiler-oracle repairs:', m9, 'locals')
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
