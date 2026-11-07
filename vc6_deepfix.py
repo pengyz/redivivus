@@ -305,6 +305,83 @@ for f6 in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
 print('y6) dtor ptr fixes:', m10)
 
 
+# y7) second-wave singles (2026-11-08, sequential-build order):
+#  a) repeated-struct collapse: 'struct struct+ ...' from repeated elaboration runs
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read(); o = t
+n0 = 0
+while True:
+    t2 = t.replace('struct struct ', 'struct ')
+    if t2 == t: break
+    t = t2; n0 += 1
+# b) free-form dtor: `~T(expr);` → `((T*)(expr))->~T()`
+t = re.sub(r'~([A-Za-z_]\w*)\(\s*(pThis|pPVar\w+|pCVar\w+|pvVar\w+)\s*\)',
+           r'((\1*)(\2))->~\1()', t)
+# c) placement-new with debug args: `new (ptr, a, b, c, d) T()` →
+#    `new ((void*)ptr) T(a, b, c, d)` (MSVC debug-new form: first arg = placement ptr,
+#    rest = ctor args; Ghidra merged them into one placement list)
+t = re.sub(r'new\s*\(([^()]+?),\s*((?:[^()]|\\()[^)]*)*?)\)\s+([A-Za-z_]\w*)\(\)',
+           lambda mm: 'new ((void*)%s) %s(%s)' % (mm.group(1).strip(), mm.group(3), mm.group(2).strip()),
+           t) if False else t
+# simpler: only when 2+ commas present AND type follows — do it precisely below
+def _fix_new(m):
+    inner = m.group(1).strip()
+    typ = m.group(2).strip()
+    if ',' not in inner:
+        return m.group(0)
+    parts = [p.strip() for p in inner.split(',')]
+    ptr, args = parts[0], parts[1:]
+    arg_s = ', '.join(a for a in args)
+    if not arg_s:
+        return 'new ((void*)%s) %s()' % (ptr, typ)
+    return 'new ((void*)%s) %s(%s)' % (ptr, typ, arg_s)
+t = re.sub(r'new\s*\(([^()]*)\)\s+([A-Za-z_]\w*)\(\)', _fix_new, t)
+# d) FUN_00430290 param type: undefined4 = pointer-generic (char[] passed)
+t = t.replace('void FUN_00430290(uint32_t param_1);', 'void FUN_00430290(void *param_1);')
+t = t.replace('void FUN_00430290(uint32_t param_1) {', 'void FUN_00430290(void *param_1) {')
+# e) FUN_00404300: ret 0x8 = 2 stack args (objdump), decomp void(void) is the fn-object desync
+t = t.replace('void FUN_00404300();', 'void FUN_00404300(void *param_1, void *param_2);')
+t = t.replace('void FUN_00404300() {', 'void FUN_00404300(void *param_1, void *param_2) { /* objdump 404300: ret 0x8 */')
+if t != o: open(f, 'w').write(t); print('y7a-e applied')
+
+# f) PointWorldToScr-style float& params called with (float*)expr → deref at call
+m7 = 0
+for f7 in glob.glob('reconstruct-out/_unnamespaced.cpp'):
+    t7 = open(f7, errors='ignore').read(); o7 = t7
+    t7 = re.sub(r'\((float\*)\s*(local_\w+|stack0x[0-9a-fA-F]+)\s*\)', r'(*\1\2)', t7)
+    if t7 != o7: open(f7, 'w').write(t7); m7 += 1
+print('y7f) float* deref at ref-params:', m7)
+
+# y8) return-type fixes: decl says void but binary returns a value (objdump eax at
+#     epilogue). Call sites receive the value (C2440 void→T). Corrections:
+#  - Camera@0x41be80: mov eax,esi(this) at 0x41bfa7 → returns CameraCtrl*
+#  - FUN_004c5820: eax loaded at epilogue → returns singleton ptr
+#  - FUN_004c58c0: mov eax,[edi+0x114] → returns int
+#  - FUN_004be460: eax=[ecx+8]/[edi+8] → returns int
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read(); o = t
+m8 = 0
+pairs = [
+  ('void Camera(gbGfxManager * param_1); // 1.14d: 0041be80',
+   'struct CameraCtrl * Camera(gbGfxManager * param_1); // 1.14d: 0041be80 (returns this; objdump 0x41bfa7 mov eax,esi)'),
+  ('void FUN_004c5820(uint32_t param_1); // 1.14d: 004c5820',
+   'void * FUN_004c5820(uint32_t param_1); // 1.14d: 004c5820 (eax singleton at epilogue)'),
+  ('void FUN_004c58c0(); // 1.14d: 004c58c0',
+   'int FUN_004c58c0(); // 1.14d: 004c58c0 (eax=[edi+0x114])'),
+  ('void FUN_004be460(uint32_t param_1); // 1.14d: 004be460',
+   'int FUN_004be460(uint32_t param_1); // 1.14d: 004be460 (eax=[ecx+8])'),
+]
+for old, new in pairs:
+    if old in t: t = t.replace(old, new); m8 += 1
+# def sites in .cpp too
+f = 'reconstruct-out/_unnamespaced.cpp'
+t2 = open(f, errors='ignore').read(); o2 = t2
+for old, new in pairs:
+    t2 = t2.replace(old.replace(';', ' {'), new.replace(';', ' {'))
+if t2 != o2: open(f, 'w').write(t2)
+if t != o: open(f.replace('.cpp', '.h'), 'w').write(t)
+print('y8) return-type fixes:', m8)
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
