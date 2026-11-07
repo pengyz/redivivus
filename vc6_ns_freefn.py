@@ -89,6 +89,8 @@ class TypeParser:
             t = t + m if m in ('*', '&', '*&') else (m + t)
         return t
 
+lib_overloads = {}
+
 def load_siglib():
     out = subprocess.run(['objdump', '-p', DLL], capture_output=True, text=True).stdout
     mangled = re.findall(r'^\s*\[\s*\d+\]\s+(\?[A-Za-z_?][^ ]*)\s*$', out, re.M)
@@ -99,12 +101,19 @@ def load_siglib():
         ret, params, ok = parse_sig(e)
         if not ok: unsup += 1; continue
         e['ret'], e['params'] = ret, params
-        lib.setdefault((e['cls'], e['method']), e)
+        # overloads: same (cls, method), different arity/mangled — keep every one
+        # (gbMatrixStack::Rotate has 1-arg (quaternion&) and 2-arg (float,vec3D&)
+        # exports; setdefault-first kept only the first and Rotate call sites died
+        # C2660 does-not-take-2, 2026-11-07)
+        key = (e['cls'], e['method'], len(params))
+        lib.setdefault(key, e)
+        lib.setdefault((e['cls'], e['method']), e)  # primary alias → first seen
+        lib_overloads.setdefault((e['cls'], e['method']), []).append(e)
         # Ghidra names the MSVC in-place default-ctor closure `??_FC@@QAEXXZ` as
         # `<Cls>::_default_constructor_closure_` — alias it so call-site scans match.
         if e['method'] == '??_F':
             lib.setdefault((e['cls'], '_default_constructor_closure_'), e)
-    return lib, len(mangled), unsup
+    return lib, len(mangled), unsup, lib_overloads
 
 def parse_export(mn):
     # ctor/op forms: `??<op><Class>@@` - op code glues directly to class name
@@ -212,7 +221,7 @@ def find_struct_def(headers, cls):
     return None
 
 def main():
-    lib, total, unsup = load_siglib()
+    lib, total, unsup, lib_overloads = load_siglib()
     print(f'nsfix: siglib {len(lib)} entries ({total} exports, {unsup} unsupported)')
     cpps = sorted(glob.glob(OUT + '/**/*.cpp', recursive=True))
     headers = {f: open(f, errors='ignore').read()
@@ -274,9 +283,14 @@ def main():
     unmatched, skips = {}, {'ctor': 0, 'op': 0}
     member_re = re.compile(r'(?:\.|->)([A-Za-z_][A-Za-z0-9_]*)\s*\(')
     decl_cls = {}   # cls -> set(method) that dll exports and struct def exists (superset)
-    for (cls, meth), e in lib.items():
+    for _k, e in lib.items():
+        cls, meth = _k[0], _k[1]
         if e['kind'] == 'method' or e['method'] == '??_F':
             decl_cls.setdefault(cls, set()).add(meth if e['kind'] == 'method' else '_default_constructor_closure_')
+    # overload siblings from lib_overloads (primary alias keeps only first-seen)
+    for (ocls, ometh), ovs in lib_overloads.items():
+        if any(e['kind'] == 'method' or e['method'] == '??_F' for e in ovs):
+            decl_cls.setdefault(ocls, set()).add(ometh)
     for f in cpps:
         t = open(f, errors='ignore').read()
         for m in CALL_RE.finditer(t):
@@ -290,7 +304,13 @@ def main():
                 unmatched[f'{cls}::{meth}'] = unmatched.get(f'{cls}::{meth}', 0) + 1
             elif e['kind'] == 'ctor' and e['method'] != '??_F': skips['ctor'] += 1
             elif e['kind'] == 'op':   skips['op'] += 1
-            else: wanted.setdefault(cls, set()).add(meth)
+            else:
+                wanted.setdefault(cls, set()).add(meth)
+                # overload siblings: same (cls, meth), different arities — declare them
+                # all so either call shape resolves (gbMatrixStack::Rotate 1/2-arg)
+                for ov in lib_overloads.get((cls, meth), []):
+                    wanted.setdefault(cls, set()).add(meth)
+                    ov['params'] = ov.get('params') or []
     # already-rewritten sites keep their classes in `wanted` via the export superset below
     for cls in decl_cls:
         wanted.setdefault(cls, set(decl_cls[cls]))
@@ -302,7 +322,7 @@ def main():
     BARE_FAMILY = ('gbVFileSystem',)
     bare_hits = 0
     for cls in BARE_FAMILY:
-        meths = [m2 for (c, m2), e in lib.items() if c == cls and e['kind'] == 'method']
+        meths = sorted({k[1] for k, e in lib.items() if k[0] == cls and e['kind'] == 'method'})
         for f in cpps:
             t = open(f, errors='ignore').read()
             for meth in meths:
@@ -352,6 +372,13 @@ def main():
             _bad_kinds = {n for n, ks in global_kinds.items() if not (ks & {'struct','class','union'})}
             fwd_names = fwd_by_file.setdefault(path, [])
             for meth in sorted(meths):
+                ov_lists = [v for k2, v in lib_overloads.items() if k2[0] == cls and k2[1] == meth] or [[lib[(cls, meth)]]]
+                for ov_e in [e2 for lst in ov_lists for e2 in lst]:
+                    for tok in re.findall(r'[A-Za-z_]\w*', (ov_e['ret'] or '') + ' ' + ' '.join(ov_e['params'])):
+                        if tok in ('void','char','int','float','bool','unsigned','long','short','const'): continue
+                        if tok in _bad_kinds: continue
+                        if tok not in file_known and tok not in fwd_names:
+                            fwd_names.append(tok); file_known.add(tok)
                 e = lib[(cls, meth)]
                 # fwd collection runs for EVERY lib method of the class — including
                 # already-declared ones (a v2 regen wipes the old fwd batch; the
@@ -361,12 +388,17 @@ def main():
                     if tok in _bad_kinds: continue
                     if tok not in file_known and tok not in fwd_names:
                         fwd_names.append(tok); file_known.add(tok)
-                if re.search(r'\b' + re.escape(meth) + r'\s*\(', text[text.index(marker):close_idx]):
-                    continue  # already declared in block
-                ret = e['ret'] or 'void'
-                ps = ', '.join(e['params']) if e['params'] else ''
-                constkw = ' const' if e.get('const') else ''
-                lines2.append(f'    {ret} {meth}({ps}){constkw}; /* {e["mangled"]} */')
+                block_txt = text[text.index(marker):close_idx]
+                for ov_e in [e2 for lst in ov_lists for e2 in lst]:
+                    if ov_e['mangled'] in block_txt:
+                        continue  # this exact signature already declared
+                    ret = ov_e['ret'] or 'void'
+                    ps = ', '.join(ov_e['params']) if ov_e['params'] else ''
+                    constkw = ' const' if ov_e.get('const') else ''
+                    decl_name = '_default_constructor_closure_' if ov_e['method'] == '??_F' else meth
+                    d2 = f'    {ret} {decl_name}({ps}){constkw}; /* {ov_e["mangled"]} */'
+                    if d2 not in lines2:
+                        lines2.append(d2)
             if lines2:
                 text = text[:close_idx] + '\n'.join(lines2) + '\n' + text[close_idx:]
                 if not DRY:
@@ -382,9 +414,11 @@ def main():
             lines = [f'    /* nsfix:{cls} - sigs from gbengine.dll exports (A-level); bodies pending extract (FID skip in B-track extract) */']
             fwd_names = fwd_by_file.setdefault(path, [])
             for meth in sorted(meths):
-                e = lib[(cls, meth)]
-                ret = e['ret'] or 'void'
-                skip = False
+                ov_lists = [v for k2, v in lib_overloads.items() if k2[0] == cls and k2[1] == meth]
+                for ov_e in ([e2 for lst in ov_lists for e2 in lst] if ov_lists else [lib[(cls, meth)]]):
+                    e = ov_e
+                    ret = e['ret'] or 'void'
+                    skip = False
                 def ensure(tok, why):
                     nonlocal skip
                     if tok in ('void','char','int','float','bool','unsigned','long','short','const'): return
@@ -419,7 +453,8 @@ def main():
                     continue
                 ps = ', '.join(params)
                 constkw = ' const' if e.get('const') else ''
-                lines.append(f'    {ret} {meth}({ps}){constkw}; /* {e["mangled"]} */')
+                decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
+                lines.append(f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */')
             insert = '\n'.join(lines) + '\n'
             text = text[:close] + insert + text[close:]
             if not DRY:
@@ -483,7 +518,7 @@ def main():
     #   `(T*)*EXPR->m(...)` and `*EXPR->m(...)` both parse as `*(EXPR->m(...))`.
     # Repair to the parenthesized form. Guarded: only rewrites forms where the arrow
     # target name is a known siglib method (no blind deref rewriting).
-    all_meths = sorted({m2 for (c, m2), e in lib.items() if e['kind'] == 'method'}, key=len, reverse=True)
+    all_meths = sorted({k[1] for k, e in lib.items() if e['kind'] == 'method'}, key=len, reverse=True)
     meth_alt = '|'.join(re.escape(m2) for m2 in all_meths)
     # a) `(T*)*EXPR->m(` — capture T (the text inside the leading paren pair)
     rb1 = re.compile(r'\((?:\s*::\s*)?((?:[A-Za-z_][A-Za-z0-9_]*::)*[A-Za-z_][A-Za-z0-9_]*)\s*\*+\)\s*\*\s*([A-Za-z_]\w*)\s*->\s*(' + meth_alt + r')\s*\(')
@@ -535,7 +570,7 @@ def main():
     n_bare = 0
     for cls in BARE_FAMILY:
         if cls not in decl_ok: continue
-        meths = [m2 for (c, m2), e in lib.items() if c == cls and e['kind'] == 'method']
+        meths = sorted({k[1] for k, e in lib.items() if k[0] == cls and e['kind'] == 'method'})
         # pre-step: repair v1 output — `*(T**)EXPR->m(...)` parsed wrong (-> binds tighter
         # than *). The this-arg `*(gbVFileSystem**)g_pVFileSys` IS a pointer (deref of
         # T** yields T*), so the member form needs parens: `(*(T**)EXPR)->m(...)`.

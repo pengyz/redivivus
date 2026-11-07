@@ -181,6 +181,18 @@ if 'void *operator_new' not in t:
           'void *operator_new(unsigned int size);\n')
     open(f, 'w').write(t); print('o) operator_new decl ✓')
 
+# q3) explicit placement-new form (VC6 <new.h>'s placement operator new didn't
+#     resolve through the include chain — "new does not take 2 parameters" x8 on
+#     `new (&obj) T()`. An inline definition in the global namespace is the
+#     standard spelling; semantics = return the pointer (identity).
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+if 'operator new(size_t, void*' not in t and 'operator new(size_t,void*' not in t:
+    t += ('\n/* placement form for deepfix q rewrites (identity, standard semantics) */\n'
+          '#include <stddef.h>\n'
+          'inline void *__cdecl operator new(size_t, void *p) { return p; }\n')
+    open(f, 'w').write(t); print('q3) placement new inline ✓')
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
