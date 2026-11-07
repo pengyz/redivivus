@@ -91,6 +91,9 @@ class TypeParser:
 
 lib_overloads = {}
 
+def _const_tail(e):
+    return ' const' if e.get('const') else ''
+
 def load_siglib():
     out = subprocess.run(['objdump', '-p', DLL], capture_output=True, text=True).stdout
     mangled = re.findall(r'^\s*\[\s*\d+\]\s+(\?[A-Za-z_?][^ ]*)\s*$', out, re.M)
@@ -349,61 +352,22 @@ def main():
         text = headers[path]
         marker = f'/* nsfix:{cls} -'
         if marker in text:
-            # incremental top-up: the block exists but a newer siglib may carry methods
-            # it lacks (e.g. the ??_F closure alias). Append only missing ones, just
-            # before the struct's closing brace.
-            block_end = brace_close(text, text.rindex('{', 0, text.index(marker)) + 0 if False else text.index('{', max(0, text.index(marker) - 4000)))if False else None
-            # find struct close from the marker position: the block sits inside the
-            # struct, so scan back to the struct open brace
-            open_idx = text.rfind('struct ', 0, text.index(marker))
+            # BLOCK REBUILD (supersedes incremental top-up): the block content is a
+            # deterministic function of the CURRENT siglib — parse fixes change param
+            # counts, and a mangled-keyed dedup guard would preserve stale wrong-param
+            # lines forever (gbRay::IsColTriangle 3-param stale vs 4-param truth,
+            # 2026-11-07). Delete the block, re-emit fresh below.
+            # CRITICAL: after deletion `close` must be REPAIRED — the struct's `};`
+            # now sits exactly where the marker started; a stale `close` (pre-deletion
+            # offset) made the fresh insert land INSIDE THE NEXT STRUCT (multi-run
+            # glue corruption, 2026-11-07/08).
+            marker_start = text.index(marker)
+            open_idx = text.rfind('struct ', 0, marker_start)
             open_idx = text.index('{', open_idx)
             close_idx = brace_close(text, open_idx)
-            lines2 = []
-            # top-up must ALSO collect fwd decls for new decls' types (v2 regen wipes
-            # the old batch; gbSphere/IDirect3D* C2061/C2501 without this, 2026-11-07)
-            # POSITION-AWARE: only names declared BEFORE the block count as visible
-            # (gbSphere def@55994 sits after the gbActor block@4930 — an existence-only
-            # check left `GetBoundSphere(gbSphere*)` C2061, 2026-11-07)
-            _cut = text.index(marker)
-            file_known = set(re.findall(r'^\s*(?:struct|class|union|enum)\s+(\w+)', text[:_cut], re.M))
-            file_known |= set(re.findall(r'^\s*typedef\s+[^;]+?\s(\w+)\s*;', text[:_cut], re.M))
-            # enum/typedef names must NEVER get a `struct X;` fwd (C2371 different-basic-
-            # types) — same rule as pass0's kind-aware sweep; check the global kind table
-            _bad_kinds = {n for n, ks in global_kinds.items() if not (ks & {'struct','class','union'})}
-            fwd_names = fwd_by_file.setdefault(path, [])
-            for meth in sorted(meths):
-                ov_lists = [v for k2, v in lib_overloads.items() if k2[0] == cls and k2[1] == meth] or [[lib[(cls, meth)]]]
-                for ov_e in [e2 for lst in ov_lists for e2 in lst]:
-                    for tok in re.findall(r'[A-Za-z_]\w*', (ov_e['ret'] or '') + ' ' + ' '.join(ov_e['params'])):
-                        if tok in ('void','char','int','float','bool','unsigned','long','short','const'): continue
-                        if tok in _bad_kinds: continue
-                        if tok not in file_known and tok not in fwd_names:
-                            fwd_names.append(tok); file_known.add(tok)
-                e = lib[(cls, meth)]
-                # fwd collection runs for EVERY lib method of the class — including
-                # already-declared ones (a v2 regen wipes the old fwd batch; the
-                # declared methods still need their param types covered)
-                for tok in re.findall(r'[A-Za-z_]\w*', (e['ret'] or '') + ' ' + ' '.join(e['params'])):
-                    if tok in ('void','char','int','float','bool','unsigned','long','short','const'): continue
-                    if tok in _bad_kinds: continue
-                    if tok not in file_known and tok not in fwd_names:
-                        fwd_names.append(tok); file_known.add(tok)
-                block_txt = text[text.index(marker):close_idx]
-                for ov_e in [e2 for lst in ov_lists for e2 in lst]:
-                    if ov_e['mangled'] in block_txt:
-                        continue  # this exact signature already declared
-                    ret = ov_e['ret'] or 'void'
-                    ps = ', '.join(ov_e['params']) if ov_e['params'] else ''
-                    constkw = ' const' if ov_e.get('const') else ''
-                    decl_name = '_default_constructor_closure_' if ov_e['method'] == '??_F' else meth
-                    d2 = f'    {ret} {decl_name}({ps}){constkw}; /* {ov_e["mangled"]} */'
-                    if d2 not in lines2:
-                        lines2.append(d2)
-            if lines2:
-                text = text[:close_idx] + '\n'.join(lines2) + '\n' + text[close_idx:]
-                if not DRY:
-                    open(path, 'w').write(text)
-                headers[path] = text
+            text = text[:marker_start] + text[close_idx:]
+            close = marker_start          # `};` now occupies this exact position
+            headers[path] = text
         if marker not in text:
             # position-aware visibility: name -> first declaration offset in THIS header
             first_off = {}
@@ -415,47 +379,59 @@ def main():
             fwd_names = fwd_by_file.setdefault(path, [])
             for meth in sorted(meths):
                 ov_lists = [v for k2, v in lib_overloads.items() if k2[0] == cls and k2[1] == meth]
-                for ov_e in ([e2 for lst in ov_lists for e2 in lst] if ov_lists else [lib[(cls, meth)]]):
+                ovs = [e2 for lst in ov_lists for e2 in lst] if ov_lists else [lib[(cls, meth)]]
+                # scrub stale lines (old parser wrong param counts), mangled-keyed
+                for _i2 in range(len(lines) - 1, -1, -1):
+                    _mm = re.search(r'/\* (\?[A-Za-z_?][^*]+) \*/\s*$', lines[_i2])
+                    if _mm:
+                        for _e2 in ovs:
+                            if _e2['mangled'] == _mm.group(1):
+                                _want = f'    {_e2["ret"] or "void"} {meth}({", ".join(_e2["params"])}{_const_tail(_e2)}); /* {_e2["mangled"]} */'
+                                if lines[_i2].rstrip() != _want:
+                                    lines[_i2] = _want + '\n'
+                for ov_e in ovs:
                     e = ov_e
                     ret = e['ret'] or 'void'
                     skip = False
-                def ensure(tok, why):
-                    nonlocal skip
-                    if tok in ('void','char','int','float','bool','unsigned','long','short','const'): return
-                    if first_off.get(tok, 1 << 60) < close: return   # declared before use point
-                    # enum/typedef names never get a struct fwd (ECPKMode C2371)
-                    ks = global_kinds.get(tok)
-                    if ks and not (ks & {'struct','class','union'}): return
-                    if tok not in fwd_names:
-                        fwd_names.append(tok); first_off[tok] = 0    # batch sits at file top
-                for tok in re.findall(r'[A-Za-z_]\w*', ret):
-                    if tok in e.get('enums', ()) and first_off.get(tok, 1 << 60) >= close:
-                        ret = ret.replace(tok, 'int')   # by-value enum ret, undefined -> int (ABI-equal)
-                        continue
-                    ensure(tok, 'ret')
-                params = []
-                for pstr in e['params']:
-                    p = pstr
-                    is_ptr = p.rstrip().endswith('*') or p.rstrip().endswith('&')
-                    for tok in re.findall(r'[A-Za-z_]\w*', pstr):
-                        if tok in e.get('enums', ()):
-                            if first_off.get(tok, 1 << 60) >= close:
-                                p = p.replace(tok, 'int') + ' /* nsfix: enum %s undefined -> int (VC6 ABI-equal) */' % tok
+                    def ensure(tok, why):
+                        nonlocal skip
+                        if tok in ('void','char','int','float','bool','unsigned','long','short','const'): return
+                        if first_off.get(tok, 1 << 60) < close: return   # declared before use point
+                        # enum/typedef names never get a struct fwd (ECPKMode C2371)
+                        ks = global_kinds.get(tok)
+                        if ks and not (ks & {'struct','class','union'}): return
+                        if tok not in fwd_names:
+                            fwd_names.append(tok); first_off[tok] = 0    # batch sits at file top
+                    for tok in re.findall(r'[A-Za-z_]\w*', ret):
+                        if tok in e.get('enums', ()) and first_off.get(tok, 1 << 60) >= close:
+                            ret = ret.replace(tok, 'int')   # by-value enum ret, undefined -> int (ABI-equal)
                             continue
-                        ensure(tok, 'param')
-                    if not is_ptr and p == pstr:
-                        named = [t for t in re.findall(r'[A-Za-z_]\w*', pstr)
-                                 if t not in ('int','float','char','bool','unsigned','long','short','const','void')]
-                        if named: skip = True   # by-value named type: fwd is not enough
-                    params.append(p)
-                if skip:
-                    skipped_byval += 1
-                    continue
-                ps = ', '.join(params)
-                constkw = ' const' if e.get('const') else ''
-                decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
-                lines.append(f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */')
-            insert = '\n'.join(lines) + '\n'
+                        ensure(tok, 'ret')
+                    params = []
+                    for pstr in e['params']:
+                        p = pstr
+                        is_ptr = p.rstrip().endswith('*') or p.rstrip().endswith('&')
+                        for tok in re.findall(r'[A-Za-z_]\w*', pstr):
+                            if tok in e.get('enums', ()):
+                                if first_off.get(tok, 1 << 60) >= close:
+                                    p = p.replace(tok, 'int') + ' /* nsfix: enum %s undefined -> int (VC6 ABI-equal) */' % tok
+                                continue
+                            ensure(tok, 'param')
+                        if not is_ptr and p == pstr:
+                            named = [t for t in re.findall(r'[A-Za-z_]\w*', pstr)
+                                     if t not in ('int','float','char','bool','unsigned','long','short','const','void')]
+                            if named: skip = True   # by-value named type: fwd is not enough
+                        params.append(p)
+                    if skip:
+                        skipped_byval += 1
+                        continue
+                    ps = ', '.join(params)
+                    constkw = ' const' if e.get('const') else ''
+                    decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
+                    dline = f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */'
+                    if dline not in lines:
+                        lines.append(dline)
+                insert = '\n'.join(lines) + '\n'
             text = text[:close] + insert + text[close:]
             if not DRY:
                 open(path, 'w').write(text)
