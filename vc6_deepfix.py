@@ -245,6 +245,66 @@ if t != o:
     open(f, 'w').write(t)
 print('y4) compiler-oracle repairs:', m9, 'locals')
 
+# y5) declaration backfill table (2026-11-08, all evidence-bearing):
+#  - dll exports (gbengine.dll, A-level): gbTimeCounterInit (YAXXZ=void cdecl),
+#    gbCreateGraphManager (YAPAVgbGfxManager@@PAUgbGfxDriverInfo@@), TransformPlane
+#    (QAEXQAM = void thiscall(float*)), LoadFromFile@gbGeomNode (QAEHPBD0P6AXHH@Z =
+#    int thiscall(char*, char*, void(__cdecl*)(int,int)))
+#  - LSTATUS: Win32 typedef missing from d2_platform (mmsystem/reg family)
+#  - fsin: x87 FSIN instruction name used as fn by the decompiler (CRT __CI pow family)
+#  - PalScriptAnimTimer/_vftable_/UIRenderObj/EffObjectPool/EffCallBackNode/CEffAction/
+#    PAL3VisNode/UICaption_adjthunk/gbSnow/gbDropDesc: forward declarations for types
+#    referenced before definition (skip-nodef family — bodies pending extract)
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read(); o = t
+if 'typedef long LSTATUS;' not in t:
+    t += '\ntypedef long LSTATUS; /* Win32 reg API family (winreg.h) */\n'
+if 'void __cdecl fsin(long double);' not in t:
+    t += 'void __cdecl fsin(long double); /* x87 FSIN fn-name used by decompiler */\n'
+if 'void __cdecl gbTimeCounterInit(void);' not in t:
+    t += ('void __cdecl gbTimeCounterInit(void); /* ?gbTimeCounterInit@@YAXXZ */\n'
+          'struct gbGfxDriverInfo;\n'
+          'struct gbGfxManager;\n'
+          'gbGfxManager *__cdecl gbCreateGraphManager(struct gbGfxDriverInfo *drv); /* ?gbCreateGraphManager@@YAPAVgbGfxManager@@PAUgbGfxDriverInfo@@@Z */\n')
+if t != o: open(f, 'w').write(t); print('y5) platform decls ✓')
+
+# type fwd decls + member decl for TransformPlane (into gbMatrix4 nsfix block)
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read(); o = t
+for ty in ('UIRenderObj', 'EffObjectPool', 'EffCallBackNode', 'CEffAction', 'PAL3VisNode', 'gbSnow', 'gbDropDesc', 'UICaption_adjthunk'):
+    if not re.search(r'^\s*(?:struct|class)\s+' + ty + '\s*;', t, re.M) and not re.search(r'^\s*(?:struct|class)\s+' + ty + '\s*\{', t, re.M):
+        t = ('struct %s;\n' % ty) + t
+# TransformPlane member decl into the nsfix gbMatrix4 block (A-level: QAEXQAM@Z)
+mpat = re.search(r'(void Rotate\(gbQuaternion&\); /\* \?Rotate@gbMatrixStack[^*]*\*/\n)', t)
+if 'TransformPlane(float*' not in t and 'TransformPlane(float *' not in t:
+    tp = '    void TransformPlane(float*); /* ?TransformPlane@gbMatrix4@@QAEXQAM@Z */\n'
+    m4 = re.search(r'(nsfix:gbMatrix4[^\n]*\n)', t)
+    if m4:
+        t = t.replace(m4.group(1), m4.group(1) + tp, 1)
+# LoadFromFile@gbGeomNode member decl (QAEHPBD0P6AXHH@Z = int(char*, char*, void(cdecl*)(int,int)))
+lfn = 'int LoadFromFile(char*, char*, void (__cdecl*)(int, int)); /* ?LoadFromFile@gbGeomNode@@QAEHPBD0P6AXHH@Z */'
+if 'nsfix:gbGeomNode' in t and lfn not in t:
+    m5 = re.search(r'(nsfix:gbGeomNode[^\n]*\n)', t)
+    if m5:
+        t = t.replace(m5.group(1), m5.group(1) + '    ' + lfn + '\n', 1)
+if t != o: open(f, 'w').write(t); print('y5) header decls ✓')
+
+# y6) dtor/adjthunk PTR initializers reference the tree function at the PTR target
+#     (binary evidence: .data values — 0056ab34→0x423860=_gbLightObj, 0056b0d4→
+#     0x4506c0=_UICaption_adjthunk, 0056ac08→0x438e90=_PalScriptAnimTimer; all three
+#     functions exist in the tree). `&~Type` is not VC6-legal without an object;
+#     the tree-function name is the honest spelling of the same address.
+m10 = 0
+for f6 in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    t6 = open(f6, errors='ignore').read(); o6 = t6
+    for old, new in (('(void*)&~gbLightObj', '(void*)&_gbLightObj'),
+                     ('(void*)&~UICaption_adjthunk', '(void*)&_UICaption_adjthunk'),
+                     ('(void*)&~PalScriptAnimTimer', '(void*)&_PalScriptAnimTimer')):
+        if old in t6: t6 = t6.replace(old, new); m10 += 1
+    if t6 != o6: open(f6, 'w').write(t6)
+print('y6) dtor ptr fixes:', m10)
+
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
