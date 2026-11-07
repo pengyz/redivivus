@@ -37,21 +37,27 @@ _HANDLE_MACRO_NAMES = {
     'HMIXER__', 'HDRVR__', 'HWIDGET__', 'HACM__', 'HACMDRIVER__', 'HACMOBJ__',
     'HACMSTREAM__', 'HCONV__', 'HCONVLIST__', 'HDDE__', 'HSZ__', 'HKL__', 'HRAWINPUT__',
 }
+# SDK headers preloaded ONCE (2026-11-07: per-name `grep -l` subprocess storms made
+# the order-defect scan crawl — 293 spans x 2 greps x every SDK header, 34min CPU).
+_sdk_texts = None
+def _sdk_all_texts():
+    global _sdk_texts
+    if _sdk_texts is None:
+        _sdk_texts = []
+        for d in SDK:
+            for hf in glob.glob(d + '/*.h') + glob.glob(d + '/*.H'):
+                try: _sdk_texts.append(open(hf, errors='ignore').read())
+                except OSError: pass
+    return _sdk_texts
 def sdk_def(n):
     if n in _HANDLE_MACRO_NAMES: return True
     if n in _sdk: return _sdk[n]
     hit = False
-    for d in SDK:
-        fs = glob.glob(d + '/*.h') + glob.glob(d + '/*.H')
-        if not fs: continue
-        r = subprocess.run(['grep','-l','-E',r'(struct|enum)\s+%s\b' % re.escape(n), *fs],
-                           capture_output=True, text=True, stdin=subprocess.DEVNULL)
-        for hf in r.stdout.split():
-            t = open(hf, errors='ignore').read()
-            if re.search(r'(struct|enum)\s+%s\s*[\{\n]' % re.escape(n), t) or \
-               re.search(r'typedef\s+(struct|enum)\s+%s\b' % re.escape(n), t):
-                hit = True; break
-        if hit: break
+    pat = re.compile(r'(?:struct|enum)\s+' + re.escape(n) + r'\s*[\{\n]')
+    pat2 = re.compile(r'typedef\s+(?:struct|enum)\s+' + re.escape(n) + r'\b')
+    for t in _sdk_all_texts():
+        if pat.search(t) or pat2.search(t):
+            hit = True; break
     _sdk[n] = hit
     return hit
 
@@ -94,6 +100,7 @@ for f in glob.glob(OUT + '/**/*.h', recursive=True):
     defined |= set(re.findall(r'(?:struct|class|union|enum)\s+(\w+)\s*[\{\n]', t))
     defined |= set(re.findall(r'typedef\s+[^;]*?\b(\w+)\s*\(', t))
     defined |= set(re.findall(r'typedef\s+[\w\s\*]+?\b(\w+)\s*;', t))
+
 
 # 3) closure: fwd-undefined ∪ field-types of every struct in this file ∪ transitive snap deps
 emit = []
@@ -239,52 +246,49 @@ fu = first_use_of(ordered)
 tgt = (opener_before(fu) if fu is not None else len(lines))
 tgt = max(tgt, floor + 1)
 lines[tgt:tgt] = block
+# 7b) POST-INSERT order repair: the block's own members introduce by-value uses that
+#     did not exist pre-insert (gbVertexPool in the block uses gbChain1D whose old def
+#     sits after the block). A pre-insert scan cannot see them. Now that the block is
+#     in, re-scan and MOVE each offending old span to just before the block (its own
+#     deps are even earlier, so a single hoist per type suffices; iterate to converge).
+_moved_defs = []
+for _round in range(40):
+    _spans = {}
+    _i = 0
+    while _i < len(lines):
+        _m = re.match(r'^(struct|enum)\s+(\w+)\s*\{', lines[_i])
+        if _m:
+            _n = _m.group(2); _d0 = _i; _depth = 0; _j = _i
+            while _j < len(lines):
+                _depth += lines[_j].count('{') - lines[_j].count('}')
+                if _depth == 0 and _j > _i:
+                    _spans[_n] = (_d0, _j); _i = _j + 1; break
+                _j += 1
+            else:
+                _i += 1
+            continue
+        _i += 1
+    _moved_one = False
+    for _n, (_d0, _d1) in sorted(_spans.items(), key=lambda kv: -kv[1][0]):
+        if sdk_def(_n): continue
+        _pat = re.compile(r'(?<![\w.])' + re.escape(_n) + r'\s+\w+\s*(?:\[[^\]]*\])?\s*;')
+        for _i2, _l2 in enumerate(lines):
+            if _d0 <= _i2 <= _d1: continue
+            if re.match(r'\s*struct\s+%s\s*;' % _n, _l2): continue
+            if _pat.search(_l2):
+                if _i2 < _d0:
+                    _seg = lines[_d0:_d1+1]
+                    del lines[_d0:_d1+1]
+                    lines[tgt:tgt] = _seg
+                    _moved_defs.append(_n); _moved_one = True
+                break
+        if _moved_one: break
+    if not _moved_one: break
 open(H, 'w').writelines(lines)
-print('emit v4: %d defs @%d (%s)' % (len(ordered)+1, tgt+1, ','.join(ordered)))
+print('emit v4: %d defs @%d (%s) post-order-moves=%d' % (len(ordered)+1, tgt+1, ','.join(ordered), len(_moved_defs)))
+if _moved_defs: print('  moved:', _moved_defs)
 
 # 8) post-emit hoist: defs whose by-value use precedes their position — run AFTER the
 #    emit block lands so positions include the block (gbVertexPool@emit-block uses
 #    gbChain1D; if gbChain1D sits later (prev-run emit tail), move it above the user).
 #    Target: immediately before the FIRST by-value user line.
-hoisted2 = []
-for _round in range(80):
-    lines = open(H, errors='ignore').readlines()
-    floor = max([i for i,l in enumerate(lines) if l.startswith('#include')] or [0])
-    moved = False
-    # collect spans
-    spans = {}
-    i = 0
-    while i < len(lines):
-        m = re.match(r'^(struct|enum)\s+(\w+)\s*\{', lines[i])
-        if m:
-            name = m.group(2); d0 = i; depth = 0; j = i
-            while j < len(lines):
-                depth += lines[j].count('{') - lines[j].count('}')
-                if depth == 0 and j > i:
-                    spans[name] = (d0, j); i = j + 1; break
-                j += 1
-            else:
-                i += 1
-            continue
-        i += 1
-    for name, (d0, d1) in sorted(spans.items(), key=lambda kv: kv[1][0]):
-        if sdk_def(name): continue
-        fu = None
-        for i2, l2 in enumerate(lines):
-            if d0 <= i2 <= d1: continue
-            if re.match(r'\s*struct\s+%s\s*;' % name, l2): continue
-            if re.match(r'\s*(?:/\*[^*]*\*/\s*)?%s\s+\w+\s*(?:\[[^\]]*\])?\s*;' % re.escape(name), l2):
-                fu = i2; break
-        if fu is not None and fu < d0:
-            seg = lines[d0:d1+1]
-            del lines[d0:d1+1]
-            # target: right after the include floor — before ALL defs, stable and
-            # cannot land inside another struct. Rescan (break) makes order converge:
-            # dependencies get hoisted in later rounds, ending above their users.
-            lines[floor+1:floor+1] = seg
-            hoisted2.append(name); moved = True
-            break
-    if not moved: break
-if hoisted2:
-    open(H, 'w').writelines(lines)
-    print('post-emit hoist:', hoisted2)

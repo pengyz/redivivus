@@ -249,14 +249,30 @@ if 'CScreenMode * GetInstance();' not in t and 'CScreenMode* GetInstance();' not
 #    `namespace GBENGINE_DLL {...}` (B-import models Ghidra namespace GBENGINE.DLL),
 #    but game bodies reference them BARE (g_pVFileSys/ColorQuadFmt/g_CurrentTime...).
 #    The original source had them as plain globals; the namespace is a modeling layer.
-#    `using namespace GBENGINE_DLL;` at the include point restores the original
-#    unqualified visibility honestly (no per-site edits, no renames).
+#    v2 (2026-11-07): blanket `using namespace GBENGINE_DLL` made nested-ns TYPES
+#    (gbRefObject/gbGeomNode...) ambiguous against the global structs — C2872 x9.
+#    Narrow form: using-declarations for the handful of engine globals only
+#    (ColorQuadFmt/g_CurrentTime/g_pVFileSys/_vftable_ — extracted from globals.h).
 f = 'reconstruct-out/_unnamespaced.cpp'
 t = open(f, errors='ignore').read()
-if 'using namespace GBENGINE_DLL;' not in t:
+if 'using namespace GBENGINE_DLL;' in t:
+    t = t.replace('using namespace GBENGINE_DLL; /* engine globals are modeled namespaced; original source references them bare */',
+                  '/* engine globals are modeled inside namespace GBENGINE_DLL (B-import);\n'
+                  '   the original source references them bare — narrow using-declarations\n'
+                  '   (a blanket using-namespace made nested-ns types ambiguous, C2872) */\n'
+                  'using GBENGINE_DLL::ColorQuadFmt;\n'
+                  'using GBENGINE_DLL::g_CurrentTime;\n'
+                  'using GBENGINE_DLL::g_pVFileSys;\n'
+                  'using GBENGINE_DLL::_vftable_;')
+    open(f, 'w').write(t); print('s2) narrow using-decls ✓')
+elif 'using GBENGINE_DLL::g_pVFileSys;' not in t:
     t = t.replace('#include "globals/globals.h"',
-                  '#include "globals/globals.h"\nusing namespace GBENGINE_DLL; /* engine globals are modeled namespaced; original source references them bare */', 1)
-    open(f, 'w').write(t); print('s) using GBENGINE_DLL ✓')
+                  '#include "globals/globals.h"\n'
+                  'using GBENGINE_DLL::ColorQuadFmt;\n'
+                  'using GBENGINE_DLL::g_CurrentTime;\n'
+                  'using GBENGINE_DLL::g_pVFileSys;\n'
+                  'using GBENGINE_DLL::_vftable_;', 1)
+    open(f, 'w').write(t); print('s2) narrow using-decls (fresh) ✓')
 
 # t) explicit ctor/dtor call syntax (VC6 rejects free-form `T::T(x)` / `T::~T(x)`; it
 #    accepts pointer forms `p->~T()`. Placement-new for ctor (same rationale as q).

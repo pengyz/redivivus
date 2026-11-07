@@ -50,6 +50,21 @@ file(GLOB_RECURSE D2_HEADERS CONFIGURE_DEPENDS
     LIST_DIRECTORIES false
     "${CMAKE_SOURCE_DIR}/*.h")
 
+# VC6 track (wine_cl / toolchain-vc6): no assembler consumer for support/*.s, and the
+# MSVC ASM front-end via wine_cl cannot satisfy CMake's MSVC_RUNTIME_LIBRARY
+# property model — strip the .s and rely on the pure C/C++ object set.
+if(MSVC_VERSION EQUAL 1200)
+    list(FILTER D2_SOURCES EXCLUDE REGEX "\\.s$")
+    # libbacktrace is the D2 track's POSIX crash-report support (stdint/unistd) —
+    # it never compiled under VC6 (C1003 early-stop masked C1083 until the fresh
+    # configure) and PAL3.exe has no backtrace dependency. Strip for VC6.
+    list(FILTER D2_SOURCES EXCLUDE REGEX "thirdparty/libbacktrace/")
+    # d2_crt_impl is the D2 track's GCC-CRT shim (_eh_vector_destructor_iterator_
+    # etc.) — libcmt provides these natively under VC6; a second definition would
+    # collide at link, and its D2 include set does not resolve here anyway.
+    list(FILTER D2_SOURCES EXCLUDE REGEX "support/d2_crt_impl[.]cpp")
+endif()
+
 # A build directory inside the tree must not feed its own files back in.
 foreach(list D2_SOURCES D2_HEADERS)
     list(FILTER ${list} EXCLUDE REGEX "^${CMAKE_BINARY_DIR}/")
@@ -98,13 +113,22 @@ target_include_directories(d2 PRIVATE ${D2_INCLUDE_DIRS})
 set(CXX_ONLY "$<COMPILE_LANGUAGE:CXX>")
 set_target_properties(d2 PROPERTIES
     CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
-target_compile_options(d2 PRIVATE
-    "$<${CXX_ONLY}:-g;-w;-fms-extensions>"
-    "$<${CXX_ONLY}:SHELL:-include ${CMAKE_SOURCE_DIR}/d2_platform.h>"
-    "$<${CXX_ONLY}:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=>")
-if(EXISTS "${CMAKE_SOURCE_DIR}/support/d2_hand.h")
+if(MSVC_VERSION EQUAL 1200)
+    # VC6 track: every flag below is a gcc-ism (-g/-w/-fms-extensions/-include/
+    # -fmacro-prefix-map); cl.exe treats `-include <path>` as a SOURCE FILE input
+    # (C1083 'Cannot open source file: d2_platform.h'). The platform header enters
+    # through each TU's own #include "d2_platform.h" (reconstruct-out on the include
+    # path); CXX_STANDARD is ignored by cl 12.0 (1998 C++).
+    target_compile_options(d2 PRIVATE "$<${CXX_ONLY}:/w>")
+else()
     target_compile_options(d2 PRIVATE
-        "$<${CXX_ONLY}:SHELL:-include ${CMAKE_SOURCE_DIR}/support/d2_hand.h>")
+        "$<${CXX_ONLY}:-g;-w;-fms-extensions>"
+        "$<${CXX_ONLY}:SHELL:-include ${CMAKE_SOURCE_DIR}/d2_platform.h>"
+        "$<${CXX_ONLY}:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=>")
+    if(EXISTS "${CMAKE_SOURCE_DIR}/support/d2_hand.h")
+        target_compile_options(d2 PRIVATE
+            "$<${CXX_ONLY}:SHELL:-include ${CMAKE_SOURCE_DIR}/support/d2_hand.h>")
+    endif()
 endif()
 if(REDIVIVUS_PERMISSIVE)
     target_compile_options(d2 PRIVATE "$<${CXX_ONLY}:-fpermissive>")
@@ -141,6 +165,7 @@ endif()
 # describe of the tree is baked in at configure time; only d2_crash.cpp sees it,
 # so a new commit recompiles that one file.
 # ---------------------------------------------------------------------------
+if(NOT MSVC_VERSION EQUAL 1200)
 add_library(d2_backtrace STATIC
     thirdparty/libbacktrace/alloc.c
     thirdparty/libbacktrace/dwarf.c
@@ -154,6 +179,7 @@ set_target_properties(d2_backtrace PROPERTIES C_STANDARD 99 C_EXTENSIONS ON)
 target_include_directories(d2_backtrace PRIVATE "${CMAKE_SOURCE_DIR}/thirdparty/libbacktrace")
 target_compile_options(d2_backtrace PRIVATE -g -w)
 target_link_libraries(d2 PRIVATE d2_backtrace)
+endif()
 
 if(NOT REDIVIVUS_BUILD_ID)
     execute_process(COMMAND git describe --always --dirty --tags
@@ -186,7 +212,9 @@ endif()
 # shim performs a real C++ throw, so libstdc++ is needed regardless.
 # ---------------------------------------------------------------------------
 set_target_properties(d2 PROPERTIES WIN32_EXECUTABLE ON OUTPUT_NAME d2)
-target_link_options(d2 PRIVATE -static -static-libgcc -static-libstdc++)
+if(NOT MSVC_VERSION EQUAL 1200)
+    target_link_options(d2 PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
 
 target_link_libraries(d2 PRIVATE
     kernel32 user32 gdi32 advapi32 shell32 ole32 oleaut32
@@ -198,8 +226,9 @@ target_link_libraries(d2 PRIVATE
 # export tables - see thirdparty/gen-implibs.sh), so the references resolve for
 # real rather than against stubs.
 if(EXISTS "${CMAKE_SOURCE_DIR}/thirdparty")
+if(NOT MSVC_VERSION EQUAL 1200)
     if(NOT CMAKE_DLLTOOL)
-        find_program(CMAKE_DLLTOOL NAMES ${D2_TOOL_PREFIX}dlltool dlltool REQUIRED)
+        find_program(CMAKE_DLLTOOL NAMES ${D2_TOOL_PREFIX}dlltool i686-w64-mingw32-dlltool dlltool REQUIRED)
     endif()
     foreach(dll binkw32 smackw32 ijl11)
         set(def "${CMAKE_SOURCE_DIR}/thirdparty/${dll}.def")
@@ -214,4 +243,15 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/thirdparty")
     add_custom_target(d2_implibs DEPENDS ${D2_IMPLIBS})
     add_dependencies(d2 d2_implibs)
     target_link_libraries(d2 PRIVATE ${D2_IMPLIBS})
+else()
+    # VC6 track: dlltool prepends '_' to every symbol — wrong for VC6 C++ mangled
+    # names (no leading underscore). The import library comes from VC6's own
+    # lib.exe (thirdparty/gen-implibs.sh GBENGINE section, checked-in gbengine.def).
+    # Bink/Smack/IJL: PAL3.exe does not import them (unlike D2) — skip.
+    set(GBENGINE_IMPLIB "${CMAKE_SOURCE_DIR}/thirdparty/gbengine.lib")
+    if(NOT EXISTS "${GBENGINE_IMPLIB}")
+        message(STATUS "gbengine.lib missing - run thirdparty/gen-implibs.sh to build it from gbengine.def")
+    endif()
+    target_link_libraries(d2 PRIVATE "${GBENGINE_IMPLIB}")
+endif()
 endif()

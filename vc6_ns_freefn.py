@@ -339,10 +339,30 @@ def main():
             open_idx = text.index('{', open_idx)
             close_idx = brace_close(text, open_idx)
             lines2 = []
+            # top-up must ALSO collect fwd decls for new decls' types (v2 regen wipes
+            # the old batch; gbSphere/IDirect3D* C2061/C2501 without this, 2026-11-07)
+            # POSITION-AWARE: only names declared BEFORE the block count as visible
+            # (gbSphere def@55994 sits after the gbActor block@4930 — an existence-only
+            # check left `GetBoundSphere(gbSphere*)` C2061, 2026-11-07)
+            _cut = text.index(marker)
+            file_known = set(re.findall(r'^\s*(?:struct|class|union|enum)\s+(\w+)', text[:_cut], re.M))
+            file_known |= set(re.findall(r'^\s*typedef\s+[^;]+?\s(\w+)\s*;', text[:_cut], re.M))
+            # enum/typedef names must NEVER get a `struct X;` fwd (C2371 different-basic-
+            # types) — same rule as pass0's kind-aware sweep; check the global kind table
+            _bad_kinds = {n for n, ks in global_kinds.items() if not (ks & {'struct','class','union'})}
+            fwd_names = fwd_by_file.setdefault(path, [])
             for meth in sorted(meths):
+                e = lib[(cls, meth)]
+                # fwd collection runs for EVERY lib method of the class — including
+                # already-declared ones (a v2 regen wipes the old fwd batch; the
+                # declared methods still need their param types covered)
+                for tok in re.findall(r'[A-Za-z_]\w*', (e['ret'] or '') + ' ' + ' '.join(e['params'])):
+                    if tok in ('void','char','int','float','bool','unsigned','long','short','const'): continue
+                    if tok in _bad_kinds: continue
+                    if tok not in file_known and tok not in fwd_names:
+                        fwd_names.append(tok); file_known.add(tok)
                 if re.search(r'\b' + re.escape(meth) + r'\s*\(', text[text.index(marker):close_idx]):
                     continue  # already declared in block
-                e = lib[(cls, meth)]
                 ret = e['ret'] or 'void'
                 ps = ', '.join(e['params']) if e['params'] else ''
                 constkw = ' const' if e.get('const') else ''
@@ -369,6 +389,9 @@ def main():
                     nonlocal skip
                     if tok in ('void','char','int','float','bool','unsigned','long','short','const'): return
                     if first_off.get(tok, 1 << 60) < close: return   # declared before use point
+                    # enum/typedef names never get a struct fwd (ECPKMode C2371)
+                    ks = global_kinds.get(tok)
+                    if ks and not (ks & {'struct','class','union'}): return
                     if tok not in fwd_names:
                         fwd_names.append(tok); first_off[tok] = 0    # batch sits at file top
                 for tok in re.findall(r'[A-Za-z_]\w*', ret):
@@ -412,7 +435,31 @@ def main():
     for path, names in fwd_by_file.items():
         if not names: continue
         text = headers[path]
-        if '/* nsfix fwd batch */' in text: continue
+        # merge-mode: an existing batch gets the missing names appended (v2 regen
+        # wipes the file; old batch + new names must coexist — a skip guard leaked
+        # gbSphere/IDirect3D* out of the batch, C2061/C2501 at 4938/7190, 2026-11-07)
+        batch_re = re.compile(r'(/\* nsfix fwd batch[^*]*\*/\n)((?:struct \w+;\n)*)')
+        mb = batch_re.search(text)
+        if mb:
+            have = set(re.findall(r'struct (\w+);', mb.group(2)))
+            # scrub stale WRONG fwds from earlier runs (enum/typedef names a pre-filter
+            # bug emitted as `struct X;` — ECPKMode C2371); kind table is authoritative
+            _bad_kinds_h = {n for n, ks in global_kinds.items() if not (ks & {'struct','class','union'})}
+            _orig = re.findall(r'struct (\w+);', mb.group(2))
+            stale = [n for n in _orig if n in _bad_kinds_h]
+            keep = [n for n in _orig if n not in _bad_kinds_h]
+            add_names = [n for n in names if n not in have and n not in _bad_kinds_h]
+            if stale:
+                print(f'  [fwd-scrub] {path}: -{sorted(stale)}')
+            if add_names:
+                print(f'  [fwd-merge] {path}: +{len(add_names)} ({add_names[:5]}...)')
+            if add_names or stale:
+                newblock = mb.group(1) + ''.join(f'struct {n};\n' for n in keep + add_names)
+                text = text[:mb.start()] + newblock + text[mb.end():]
+                if not DRY:
+                    open(path, 'w').write(text)
+                headers[path] = text
+            continue
         fwd_txt = ('/* nsfix fwd batch - forward decls for nsfix member decls; '
                    'defined elsewhere or later in this file */\n'
                    + '\n'.join(f'struct {n};' for n in names) + '\n')
