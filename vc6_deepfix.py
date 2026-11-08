@@ -382,6 +382,57 @@ if t2 != o2: open(f, 'w').write(t2)
 if t != o: open(f.replace('.cpp', '.h'), 'w').write(t)
 print('y8) return-type fixes:', m8)
 
+# y9) second-wave singles from sequential build (2026-11-08, all objdump/decomp evidence):
+#  a) dtor free-form residual: `T::((T*)x)->~T()` → clean member dtor call
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read(); o = t
+# 3666: `gbGeomNode::((gbGeomNode*)(pThis))->~gbGeomNode();` → clean form
+t = t.replace('gbGeomNode::((gbGeomNode*)(pThis))->~gbGeomNode();',
+              '((gbGeomNode*)pThis)->~gbGeomNode();')
+# 2034: dtor free-form residual
+t = re.sub(r'~GRPinput\(pThis\);', '((GRPinput*)pThis)->~GRPinput();', t)
+# b) placement-new with debug args
+t = re.sub(r'new\s*\(([^(),]+),\s*([^)]+)\)\s+(gb[A-Za-z]\w*)\(\)',
+           lambda mm: f'new ((void*){mm.group(1).strip()}) {mm.group(3)}({mm.group(2).strip()})', t)
+# c) LoadFromFile T::m → member (3-param manual sig from dll QAEHPBD0P6AXHH@Z)
+t = re.sub(r'gbGeomNode::LoadFromFile\((\w+), ', r'\1->LoadFromFile(', t)
+# d) IsColAABB pointer→ref deref
+t = t.replace('((gbRay*)param_1)->IsColAABB( in_ECX);', '((gbRay*)param_1)->IsColAABB( *in_ECX);')
+# e) IsColTriangle pointer→ref deref ×3
+t = t.replace('((gbRay*)param_1)->IsColTriangle( pgVar4, pgVar4 + 0xc, pgVar4 + 0x18, (gbVec3D*)&__frame0.local_24);',
+              '((gbRay*)param_1)->IsColTriangle( *pgVar4, *(pgVar4 + 0xc), *(pgVar4 + 0x18), *&__frame0.local_24);')
+# f) FUN_00404300: call passes uint32_t values for void* params → explicit cast
+t = t.replace('FUN_00404300(*(uint32_t*)((int)pThis + 0x1c), *(uint32_t*)((int)pThis + 0x20));',
+              'FUN_00404300((void*)(uintptr_t)*(uint32_t*)((int)pThis + 0x1c), (void*)(uintptr_t)*(uint32_t*)((int)pThis + 0x20));')
+# g) CGameData_Load: CUtil fwd is in globals.h ✓ — the ')' error means CGameData_Load
+#    is not visible; add explicit extern
+if 'CGameData_Load' in t and 'extern int CGameData_Load' not in t and 'int CGameData_Load(' not in t.split('/* 1.14d: 0044f610')[0][-500:]:
+    pass  # already declared in _unnamespaced.h:116333
+# h) closure: ArraySort callback needs free fn
+if 'extern void gbVec3D_default_ctor_closure();' not in t:
+    t = t.replace('void DecideKeyStatus',
+                  'extern void gbVec3D_default_ctor_closure(); /* ??_FgbVec3D */\nvoid DecideKeyStatus', 1)
+if t != o: open(f, 'w').write(t); print('y9a-h applied')
+
+# i) PAL3/PAL3_Init/gbSnow/gbDropDesc/EffObjectPool etc — runaway struct family:
+#    these types have size>4096 in Ghidra (SKIP=runaway防爆), fwd decl suffices for
+#    pointer uses. Add fwd decls to _unnamespaced.h for types not yet declared.
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read(); o = t
+for ty in ('PAL3', 'gbSnow', 'gbDropDesc', 'EffObjectPool', 'EffCallBackNode',
+           'CEffAction', 'PAL3VisNode', 'UICaption_adjthunk', 'UIRenderObj'):
+    if not re.search(r'(?:struct|class)\s+' + ty + r'\s*[;{]', t, re.M):
+        t = f'struct {ty};\n' + t
+if t != o: open(f, 'w').write(t); print('y9i) fwd decls ✓')
+
+# j) stack0xffffffec: check if local exists in GRPinput fn scope
+lines_j = open('reconstruct-out/_unnamespaced.cpp', errors='ignore').readlines()
+has_local = any('long stack0xffffffec' in l for l in lines_j[1698:1740])
+if not has_local:
+    lines_j.insert(1698, '    long stack0xffffffec[2]; /* POINT holder frame slot (revisit) */\n')
+    open('reconstruct-out/_unnamespaced.cpp', 'w').writelines(lines_j)
+    print('j) stack0xffffffec local ✓')
+
 # p) LAB_ label extern decls: decompiled SEH frames reference .text labels as handler
 #     addresses (`puStack_c = &LAB_0055f040; ExceptionList = ...`) — reconstruct emits the
 #     references but no declarations (1152 distinct labels in _unnamespaced.cpp alone).
