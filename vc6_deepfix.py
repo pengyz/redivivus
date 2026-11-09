@@ -209,10 +209,13 @@ t = open(f, errors='ignore').read()
 o = t
 m9 = 0
 # a) frame-slot locals: insert into the ENCLOSING function of the first use
+# 2026-11-09: y4 段之前步骤会把 t 指向其它文件 → 显式重读目标(.cpp)
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
 for sym, decl in sorted(FIX_TABLE.items(), key=lambda kv: -len(kv[0])):
     if decl in t:   # already inserted (exact line)
         continue
-    um = re.search(r'\n([^\n]*\b' + re.escape(sym) + '\b)', t)
+    um = re.search(r'\n([^\n]*\b' + re.escape(sym) + r'\b)', t)
     if not um:
         continue
     pre_lines = t[:um.start()].split('\n')
@@ -887,3 +890,19 @@ if m and 'MultiplyBy' not in m.group(1):
     _t3 = _t3.replace('struct gbQuaternion {\n',
         'struct gbQuaternion {\n    void MultiplyBy(gbQuaternion * a, gbQuaternion * b); /* 虚槽渲染名,同SetAxisAngle族 */\n    void GetMatrix(gbMatrix4 * out); /* 虚槽渲染名 */\n', 1)
     open(_h2, 'w').write(_t3); print('y14d) gbQuaternion 虚槽方法声明 ✓')
+
+# y15) FUN_00411170 第三参 cast ×17 (0x411180: test eax/je NULL检查 + [esi]→[edi]
+#      12字节拷贝 = param3 是目标指针;调用点 int算术 → 指针 cast)
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+t2, n15 = _re2.subn(r'(FUN_00411170\([^,]+, [^,]+, )(\w+ \+ 0xc\))', r'\1(uint32_t*)(\2)', t)
+if n15:
+    open(f, 'w').write(t2)
+print(f'y15) FUN_00411170 param3 casts: {n15}')
+
+# y15b) FUN_00410e40 第三参同族cast（0x410e40 姊妹函数,数组拷贝目标指针）
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+t2, n = _re2.subn(r'(FUN_00410e40\([^,]+, [^,]+, )([^,]+\+ \w+ \* 0xc\))', r'\1(uint32_t*)(\2)', t)
+if n: open(f, 'w').write(t2)
+print(f'y15b) FUN_00410e40 param3 casts: {n}')
