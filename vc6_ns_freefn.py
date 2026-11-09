@@ -452,7 +452,8 @@ def main():
                     ps = ', '.join(params)
                     constkw = ' const' if e.get('const') else ''
                     if e['kind'] == 'ctor':
-                        dline = f'    {meth}({ps}); /* {e["mangled"]} */'
+                        # ctor name is always the CLASS name, never '~new' or similar
+                        dline = f'    {cls}({ps}); /* {e["mangled"]} */'
                     else:
                         decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
                         dline = f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */'

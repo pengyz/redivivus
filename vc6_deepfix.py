@@ -305,6 +305,15 @@ for f6 in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
 print('y6) dtor ptr fixes:', m10)
 
 
+# y7pre) fn-name shadow elaboration: functions sharing struct names hide the
+# struct type (C++ name hiding) — elaborate the type in casts.
+for fpre in glob.glob('reconstruct-out/**/*.cpp', recursive=True):
+    tpre = open(fpre, errors='ignore').read()
+    opre = tpre
+    tpre = re.sub(r'\(\((GRPinput|CIniFile|CPK|UIListBox)\*\)', r'((struct *)', tpre)
+    if tpre != opre:
+        open(fpre, 'w').write(tpre)
+
 # y7) second-wave singles (2026-11-08, sequential-build order):
 #  a) repeated-struct collapse: 'struct struct+ ...' from repeated elaboration runs
 f = 'reconstruct-out/_unnamespaced.cpp'
@@ -317,6 +326,8 @@ while True:
 # b) free-form dtor: `~T(expr);` → `((T*)(expr))->~T()`
 t = re.sub(r'~([A-Za-z_]\w*)\(\s*(pThis|pPVar\w+|pCVar\w+|pvVar\w+)\s*\)',
            r'((\1*)(\2))->~\1()', t)
+t = re.sub(r'new\s*\(\s*([^,()]+)\s*,\s*([^)]+)\)\s+([A-Za-z_]\w*)\s*\(\s*\)',
+           lambda mm: f'new ((void*){mm.group(1).strip()}) {mm.group(3)}({mm.group(2).strip()})', t)
 # c) placement-new with debug args: `new (ptr, a, b, c, d) T()` →
 #    `new ((void*)ptr) T(a, b, c, d)` (MSVC debug-new form: first arg = placement ptr,
 #    rest = ctor args; Ghidra merged them into one placement list)
@@ -348,7 +359,7 @@ if t != o: open(f, 'w').write(t); print('y7a-e applied')
 m7 = 0
 for f7 in glob.glob('reconstruct-out/_unnamespaced.cpp'):
     t7 = open(f7, errors='ignore').read(); o7 = t7
-    t7 = re.sub(r'\((float\*)\s*(local_\w+|stack0x[0-9a-fA-F]+)\s*\)', r'(*\1\2)', t7)
+    t7 = re.sub(r'\(float\*\)\s*(local_\w+)', r'\1', t7)
     if t7 != o7: open(f7, 'w').write(t7); m7 += 1
 print('y7f) float* deref at ref-params:', m7)
 
