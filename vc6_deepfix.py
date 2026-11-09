@@ -634,3 +634,174 @@ if old_sig in t:
     t = t.replace(old_sig, new_sig)
     open(f, 'w').write(t); print('x) FUN_00553082 varargs ✓')
 print('deepfix done')
+
+# y10) C2664 family ×5 (2026-11-09 build, all call-site evidence):
+#   a) PointWorldToScr(…, local_14(gbColorQuad[2]数组名), &__frame0.local_1c) →
+#      声明 (gbVec3D*, float&, float&) mangled ?PointWorldToScr@@QAEXPAUgbVec3D@@AAM1@Z。
+#      数组名绑 float& 需 deref; 取址形态需去&(float lvalue 直接绑引用)。
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read(); n0 = 0
+old = '((gbCamera*)(gbCamera*)&g_pCameraCtrl->m_fMinDist)->PointWorldToScr( (gbVec3D*)&__frame1.local_c, local_14, &__frame0.local_1c);'
+new = '((gbCamera*)(gbCamera*)&g_pCameraCtrl->m_fMinDist)->PointWorldToScr( (gbVec3D*)&__frame1.local_c, *(float*)&local_14, __frame0.local_1c);'
+if old in t: t = t.replace(old, new); n0 += 1
+#   b) IsColTriangle 第4参 *&__frame0.local_24(float槽) → 形参 gbVec3D& — reinterpret
+old = 'IsColTriangle( *pgVar4, *(pgVar4 + 0xc), *(pgVar4 + 0x18), *&__frame0.local_24);'
+new = 'IsColTriangle( *pgVar4, *(pgVar4 + 0xc), *(pgVar4 + 0x18), *(gbVec3D*)&__frame0.local_24);'
+if old in t: t = t.replace(old, new); n0 += 1
+#   c) Rotate(float, gbVec3D&) ×3 — 传 (gbVec3D*)&cast 指针 → deref(与A面C2100同源,声明的&语义)
+import re as _re
+t2, n_c = _re.subn(r'->Rotate\( (g_fPalScript_\w+), \(gbVec3D\*\)&(uStack_\w+)\)',
+                   r'->Rotate( \1, *(gbVec3D*)&\2)', t)
+if n_c: t = t2; n0 += n_c
+#   d) FUN_00553d20 第一参 — 0x553d20: memcpy(dst=edi,param_1, src=esi,param_2, len=ecx,param_3)
+#      (mov 0x8(%ebp),%edi; mov 0xc(%ebp),%esi; mov 0x10(%ebp),%ecx)。实参是 buffer 指针算术
+#      (g_PAL3_Instance+12 存 buffer指针,+uVar4=指针偏移) → cast 回指针形态
+old = 'FUN_00553d20(*(uint32_t*)((char*)&g_PAL3_Instance + 12) + uVar4,'
+new = 'FUN_00553d20((uint32_t*)(*(uint32_t*)((char*)&g_PAL3_Instance + 12) + uVar4),'
+if old in t: t = t.replace(old, new); n0 += 1
+#   e) RegSetValueExA 第5参 va_list __va → const unsigned char*
+#      二进制 0x40711f: lea 0x10(%esp),%eax; push %eax — 传栈指针值,与传__va一致,cast 即语义保持
+old = 'pcVar2 = (char*)RegSetValueExA((HKEY)szSubKey, lpValueName, 0, 4, __va, 4);'
+new = 'pcVar2 = (char*)RegSetValueExA((HKEY)szSubKey, lpValueName, 0, 4, (const unsigned char*)__va, 4);'
+if old in t: t = t.replace(old, new); n0 += 1
+if n0:
+    open(f, 'w').write(t)
+print(f'y10) C2664 family: {n0} fixes')
+
+# y11) 2026-11-09 build 101@5626 批量修复(全部编译器-as-oracle+objdump取证):
+#  a) `code`/`code*` Ghidra伪类型 ×4025 — VC6无此类型 → d2_platform typedef
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read(); add = ''
+if 'typedef void code;' not in t:
+    add += 'typedef void code; /* Ghidra pseudo-type: opaque code byte (VC6: void suffices, sites are all casts) */\n'
+if r'extern void* _vftable_;' not in t and '_vftable_' not in t:
+    add += 'extern void* _vftable_; /* decomp placeholder for vtable-ptr stores; wine_link revisit */\n'
+if add:
+    t += '\n/* y11: Ghidra pseudo-type shims */\n' + add
+    open(f, 'w').write(t); print('y11a) code/_vftable shims ✓')
+#  b) __CxxThrowException_8() 0参调用 ×31 vs 4参声明 → varargs(cdecl 变参,链接wine_link revisit)
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+o8 = 'void __CxxThrowException_8(void* pExceptionObject, const void* pThrowInfo);'
+n8 = 'void __CxxThrowException_8(...); /* 31处0参throw渲染 vs 4参真实签名 — varargs过编译,签名wine_link定谳 */'
+if o8 in t: t = t.replace(o8, n8); open(f, 'w').write(t); print('y11b) ThrowException varargs ✓')
+#  c) ScreenEffectMgr ctor 自由函数声明遮蔽 struct(fnShadowedTypes族,无调用点→删)
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read()
+o = 'void ScreenEffectMgr(void * pThis); // 1.14d: 004bee60\n'
+if o in t:
+    t = t.replace(o, ''); open(f, 'w').write(t); print('y11c) ScreenEffectMgr shadow decl 删 ✓')
+#  d) gbVec3D 3参ctor — IAT导出 ??0gbVec3D@@QAE@MMM@Z(placement new gbVec3D(0,0,0)调用点)
+t = open(f, errors='ignore').read()
+o3 = 'struct gbVec3D {\n'
+d3 = '    gbVec3D(float x, float y, float z); /* IAT: ??0gbVec3D@@QAE@MMM@Z (gbengine导出,无体) */\n'
+if 'gbVec3D(float x, float y, float z);' not in t and o3 in t:
+    t = t.replace(o3, o3 + d3, 1); open(f, 'w').write(t); print('y11d) gbVec3D 3-param ctor decl ✓')
+#  e) .cpp 逐点(编译器点名):
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read(); n11 = 0
+#   e1) 0x404e08-11: push $1; call 0x5415f0; mov eax,ecx; call 0x541710(_UIRenderObj)
+#       — ~UIRenderObj(uVar7) 是Ghidra参数误渲染,真身 _UIRenderObj(FUN_005415f0(1))
+old = 'uVar7 = 1;\n              FUN_005415f0();\n              ~UIRenderObj(uVar7);'
+new = 'uVar7 = 1;\n              FUN_005415f0();\n              _UIRenderObj((uint8_t)uVar7);'
+if old in t: t = t.replace(old, new); n11 += 1
+#   e2) FUN_00553d20 参数2同参数1(buffer指针算术,0x553d20 memcpy(dst=edi,src=esi,len=ecx))
+old = '*(uint32_t*)((char*)&g_PAL3_Instance + 12) + uVar3 + uVar4,'
+new = '(uint32_t*)(*(uint32_t*)((char*)&g_PAL3_Instance + 12) + uVar3 + uVar4),'
+if old in t: t = t.replace(old, new); n11 += 1
+#   e3) StartCombat 第一参数const占位名(0x4073d1: mov 0x8(%ebp),%ecx = 第一参是数组指针;
+#       Ghidra无名参数渲染成'const' → 5623 const[iVar3] C2065)
+old = 'void StartCombat(uint32_t * const, int param_1, Role * side, char param_2) {'
+new = 'void StartCombat(uint32_t * srcRoles, int param_1, Role * side, char param_2) {'
+if old in t: t = t.replace(old, new)
+old2 = 'g_nPartyRoles[iVar3] = const[iVar3];'
+new2 = 'g_nPartyRoles[iVar3] = srcRoles[iVar3];'
+if old2 in t: t = t.replace(old2, new2); n11 += 1
+#   e4) 显式ctor调用 ((Cls*)(Cls*)(EXPR))->Cls(); → placement new
+#      (0x404670真身: mov $0x8acc10,%ecx; jmp *IAT — 对全局调默认ctor,VC6语法等价替换)
+import re as _re2
+t2, n_ctor = _re2.subn(r'\(\(([A-Za-z_]\w*)\*\)\([A-Za-z_]\w*\*\)(.*?)\)\)->\1\(\);',
+                       r'new ((void*)\2) \1();', t)
+if n_ctor: t = t2; n11 += n_ctor
+if n11:
+    open(f, 'w').write(t)
+print(f'y11e) cpp singles+ctor-rewrites: {n11}')
+
+# y11f) ctor-rewrite 括号修复器(2026-11-09): 首版正则右括号计数错造成
+#       `new ((void*)(EXPR) Cls();` 缺闭括号 ×4 — 幂等补齐。
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+t2, n_fix = _re2.subn(r'new \(\(void\*\)\(((?:[^()]|\([^()]*\))*?)\) (gbImage2D\(\));',
+                      r'new ((void*)(\1)) \2;', t)
+if n_fix:
+    open(f, 'w').write(t2)
+print(f'y11f) ctor-rewrite bracket repair: {n_fix}')
+
+# y12) 2026-11-09 第二批(101@5980截断内):
+#  a) 撤销y11a的 typedef void code — d2_platform L76 原生已有 typedef int code(...)
+#     (code* = 函数指针,_vftable_ void*→code* C2440 根因); _vftable_ 声明改 code* 形态
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+o_bad = 'typedef void code; /* Ghidra pseudo-type: opaque code byte (VC6: void suffices, sites are all casts) */\n'
+if o_bad in t:
+    t = t.replace(o_bad, '')
+o_vf = 'extern void* _vftable_; /* decomp placeholder for vtable-ptr stores; wine_link revisit */'
+n_vf = 'extern code* _vftable_; /* decomp placeholder for vtable-ptr stores; code* 函数指针形态(3841 无cast初始化) */'
+if o_vf in t:
+    t = t.replace(o_vf, n_vf)
+open(f, 'w').write(t); print('y12a) code typedef revert + _vftable_ code* ✓')
+#  b) CScreenMode ctor 自由函数声明遮蔽 struct(无调用点) → 删 (C2440×8/C2296 根因)
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read()
+o = 'void CScreenMode(void * pThis); // 1.14d: 00523f30\n'
+cpp = open('reconstruct-out/_unnamespaced.cpp', errors='ignore').read()
+if o in t and 'CScreenMode(this' not in cpp and 'CScreenMode(pThis' not in cpp and ' CScreenMode(' not in cpp:
+    t = t.replace(o, ''); open(f, 'w').write(t); print('y12b) CScreenMode shadow decl 删 ✓')
+#  c) 带参显式ctor ((Cls*)(X*)EXPR)->Cls(args); → placement new(3960 gbSnow×4参等)
+t2, n_c12 = _re2.subn(r'\(\(([A-Za-z_]\w*)\*\)\([A-Za-z_]\w*\*\)(.*?)\)->\1\(\s*([^;]*?)\s*\);',
+                      r'new ((void*)\2) \1(\3);', cpp)
+if n_c12:
+    open('reconstruct-out/_unnamespaced.cpp', 'w').write(t2)
+    print(f'y12c) explicit-ctor-with-args placement-new: {n_c12}')
+#  d) FUN 声明参数数 vs 调用点不符 ×6 → varargs (B面已有104个(...)原型先例)
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read()
+va = {
+ 'void FUN_004c5bb0(double param_1);':      'void FUN_004c5bb0(...); /* 0x4c5bb0: thiscall裸ret — 调用点2参,wine_link定谳 */',
+ 'void FUN_0052b900(uint32_t param_1, uint32_t param_2);': 'void FUN_0052b900(...); /* 调用点1参 */',
+ 'void FUN_004105b0(float param_1);':       'void FUN_004105b0(...); /* 调用点0参 */',
+ 'int FUN_00432170(uint32_t param_1, char param_2);': 'int FUN_00432170(...); /* 调用点1参 */',
+ 'uint8_t * FUN_004226f0();':               'uint8_t * FUN_004226f0(...); /* 调用点1参 */',
+}
+n_v = 0
+for o, n in va.items():
+    if o in t: t = t.replace(o, n); n_v += 1
+if n_v: open(f, 'w').write(t)
+print(f'y12d) FUN varargs decls: {n_v}')
+#  e) gbQuaternion::SetAxisAngle — 0x405c22: call *(vtable+0x30) 虚槽调用被Ghidra渲染成
+#     具体方法名;gbengine.def 只有 gbMatrix4 版 — 成员声明补(虚槽链接期vtable布局解析)
+t = open(f, errors='ignore').read()
+if 'struct gbQuaternion {' in t and 'SetAxisAngle' not in t.split('struct gbQuaternion {')[1].split('};')[0]:
+    t = t.replace('struct gbQuaternion {\n', 'struct gbQuaternion {\n    void SetAxisAngle(gbVec3D * axis, float angle); /* 0x405c22 虚槽+0x30 渲染名;def仅gbMatrix4版,wine_link定谳 */\n', 1)
+    open(f, 'w').write(t); print('y12e) gbQuaternion::SetAxisAngle decl ✓')
+#  f) _default_constructor_closure_ — Ghidra 伪符号(默认构造闭包地址)被当比较函数指针
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+if '_default_constructor_closure_' not in t:
+    t += 'extern void _default_constructor_closure_; /* Ghidra default-ctor closure pseudo-symbol (ArraySort comparator arg site) */\n'
+    open(f, 'w').write(t); print('y12f) _default_constructor_closure_ decl ✓')
+
+# y12g) CScreenMode ctor-as-freefn 三方改名(声明/定义/调用点) — 原名遮蔽 struct CScreenMode
+#       (0x523f30 = CScreenMode ctor;有定义体故不能删,走改名)
+f = 'reconstruct-out/_unnamespaced.h'
+t = open(f, errors='ignore').read()
+if 'void CScreenMode_ctor(void * pThis);' not in t:
+    t = t.replace('void CScreenMode(void * pThis); // 1.14d: 00523f30\n',
+                  'void CScreenMode_ctor(void * pThis); // 1.14d: 00523f30 (ctor-as-freefn;原名遮蔽struct)\n')
+    open(f, 'w').write(t)
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+t = t.replace('void CScreenMode(void * pThis) {', 'void CScreenMode_ctor(void * pThis) {')
+t = t.replace('      CScreenMode(pvVar1);', '      CScreenMode_ctor(pvVar1);')
+open(f, 'w').write(t)
+print('y12g) CScreenMode_ctor rename ✓')

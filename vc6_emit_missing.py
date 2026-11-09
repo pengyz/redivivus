@@ -15,7 +15,7 @@ TYPEMAP = {'byte':'unsigned char','word':'unsigned short','dword':'unsigned long
            'string':'const char *','TerminatedCString':'const char *','string-utf8':'const char *',
            'undefined':'unsigned char','code':'void *'}
 KINDS = ('STRUCTURE','UNION','ENUM')
-FIELD_RE = re.compile(r'^\s+(?:/\*[^*]*\*/\s*)?([A-Za-z_]\w*)\s+(\*+\s*)?([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*;')
+FIELD_RE = re.compile(r'^\s+(?:/\*[^*]*\*/\s*)?(?:struct\s+|class\s+|union\s+|enum\s+)?([A-Za-z_]\w*)\s+(\*+\s*)?([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*;')  # 2026-11-09: +struct/class/union/enum 显式前缀(此前 'struct X * p;' 形态整行漏收集 → 定义缺失C2143级联)
 
 snap = {}
 for line in open(SNAP):
@@ -284,6 +284,27 @@ for _round in range(40):
                 break
         if _moved_one: break
     if not _moved_one: break
+# 7c) pointer-member fwd decls (2026-11-09): `T * m_x;` used before T's def —
+#     VC6 pointer members only need a fwd decl; hoisting a 20k-line def block
+#     (7b style) risks by-value连锁. Insert `struct T;` at first use instead.
+_fhave = set()
+for _l in lines:
+    _m = re.match(r'^\s*struct\s+(\w+)\s*;', _l)
+    if _m: _fhave.add(_m.group(1))
+_n_fwd = 0
+for _n, (_d0, _d1) in sorted(_spans.items(), key=lambda kv: -kv[1][0]):
+    if _n in _fhave or sdk_def(_n): continue
+    _pat = re.compile(r'(?<![\w.])' + re.escape(_n) + r'\s*\*+\s*\w+\s*(?:\[[^\]]*\])?\s*;')
+    _fu = None
+    for _i2, _l2 in enumerate(lines):
+        if _d0 <= _i2 <= _d1: continue
+        if re.match(r'^\s*(?:struct\s+)?%s\s*[\{\w]' % re.escape(_n), _l2) and 'struct %s;' % _n not in _l2: continue
+        if _pat.search(_l2):
+            _fu = _i2; break
+    if _fu is not None and _fu < _d0:
+        lines[_fu:_fu] = ['struct %s;\n' % _n]
+        _n_fwd += 1
+if _n_fwd: print('  fwd-decls for late pointer members:', _n_fwd)
 open(H, 'w').writelines(lines)
 print('emit v4: %d defs @%d (%s) post-order-moves=%d' % (len(ordered)+1, tgt+1, ','.join(ordered), len(_moved_defs)))
 if _moved_defs: print('  moved:', _moved_defs)
@@ -292,3 +313,15 @@ if _moved_defs: print('  moved:', _moved_defs)
 #    emit block lands so positions include the block (gbVertexPool@emit-block uses
 #    gbChain1D; if gbChain1D sits later (prev-run emit tail), move it above the user).
 #    Target: immediately before the FIRST by-value user line.
+
+# 7d) gbColorQuad 4-param ctor decl (2026-11-09): 二进制 0x402dff `call *0x56a550`
+#     = IAT 导出 ??0gbColorQuad@@QAE@EEEE@Z (4×unsigned char __thiscall, gbengine.def
+#     实名) — dll 内实现,声明无体,链接期 gbengine.lib 解析。emit block 每次重建
+#     (strip+rewrite)都会冲掉手工声明,故挂在 emit 写盘后幂等补。
+_t = open(H, errors='ignore').read()
+_o = 'gbColorQuad(unsigned char r, unsigned char g, unsigned char b, unsigned char a);'
+if _o not in _t and 'struct gbColorQuad {' in _t:
+    _t = _t.replace('struct gbColorQuad {\n',
+                    'struct gbColorQuad {\n    ' + _o + ' /* IAT 0x56a550: ??0gbColorQuad@@QAE@EEEE@Z (gbengine导出,无体) */\n', 1)
+    open(H, 'w').write(_t)
+    print('  gbColorQuad 4-param ctor decl ✓')
