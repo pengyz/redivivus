@@ -903,6 +903,13 @@ print(f'y15) FUN_00411170 param3 casts: {n15}')
 # y15b) FUN_00410e40 第三参同族cast（0x410e40 姊妹函数,数组拷贝目标指针）
 f = 'reconstruct-out/_unnamespaced.cpp'
 t = open(f, errors='ignore').read()
-t2, n = _re2.subn(r'(FUN_00410e40\([^,]+, [^,]+, )([^,]+\+ \w+ \* 0xc\))', r'\1(uint32_t*)(\2)', t)
+t2, n = _re2.subn(r'(FUN_00410e40\([^,]+, [^,]+, )(?![^,]*uint32_t\*)((?:(?!\(uint32_t\*\)\()[^,])+\+ \w+ \* 0xc\))', r'\1(uint32_t*)(\2)', t)
 if n: open(f, 'w').write(t2)
 print(f'y15b) FUN_00410e40 param3 casts: {n}')
+
+# y15c) FUN_00411170 第三参幂等通则(任意0x偏移;负前瞻防重复cast)
+f = 'reconstruct-out/_unnamespaced.cpp'
+t = open(f, errors='ignore').read()
+t2, n = _re2.subn(r'(FUN_00411170\([^,]+, [^,]+, )(?!\(uint32_t\*\))(\w+ \+ (?:0x[0-9a-f]+|\d+)\))', r'\1(uint32_t*)(\2)', t)
+if n: open(f, 'w').write(t2)
+print(f'y15c) FUN_00411170 idempotent casts: {n}')
