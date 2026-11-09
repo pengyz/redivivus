@@ -805,3 +805,85 @@ t = t.replace('void CScreenMode(void * pThis) {', 'void CScreenMode_ctor(void * 
 t = t.replace('      CScreenMode(pvVar1);', '      CScreenMode_ctor(pvVar1);')
 open(f, 'w').write(t)
 print('y12g) CScreenMode_ctor rename ✓')
+
+# y13) 裸 this 当变量(2026-11-09 C2673族×11): Ghidra把某指针局部命名为this
+#      (`this = &DAT_x; do{...; this+=0x2200;}` 循环游标)。this是关键字→换名itThis+声明。
+#      编译器点名清单驱动(oracle),逐函数体处理。
+import re as _re13
+_f = 'reconstruct-out/_unnamespaced.cpp'
+_t = open(_f, errors='ignore').read()
+# 编译器点名(2026-11-09 errs9): SnapScreen/IfHideFightSucceed/FUN_00407790/EndWolf
+import re as _r
+_lines = _t.split('\n')
+_fixed = 0
+for _fname in ['SnapScreen', 'IfHideFightSucceed', 'FUN_00407790', 'EndWolf', 'FUN_00407320']:
+    # 找函数定义行
+    _di = next((i for i,l in enumerate(_lines) if _re13.match(r'(?:void|int|bool|uint\w*|char\*?|[\w_]+\s*\*)\s*' + _re13.escape(_fname) + r'\(', l)), None)
+    if _di is None: continue
+    # 函数体范围: 从 di 到下一个顶层定义
+    _ei = next((j for j in range(_di+1, len(_lines)) if _re13.match(r'^\}\s*$', _lines[j])), _di+200)
+    body = _lines[_di+1:_ei]
+    if not any(_re13.search(r'(?<![\w.])this(?!->)(?!\.)(?![\w])', b) for b in body): continue
+    new_body = []
+    for b in body:
+        b2 = _re13.sub(r'(?<![\w.])this(?!->)(?!\.)(?![\w])', 'itThis', b)
+        new_body.append(b2)
+    # 声明插在函数体首行(定义行后)
+    _lines[_di+1:_di+1] = ['    void* itThis; /* y13: Ghidra把指针局部命名为this(关键字),换名 */']
+    _lines[_di+2:_ei+1] = new_body
+    _fixed += 1
+if _fixed:
+    open(_f, 'w').write('\n'.join(_lines))
+print(f'y13) bare-this rename: {_fixed} functions')
+
+# y14) fnShadowedTypes 通则(2026-11-09): `void Cls(void * pThis); // 1.14d: addr`
+#      声明遮蔽 struct Cls → 所有 `Cls*` 类型引用 C2440/C2296。
+#      有定义体→三方改名 Cls_ctor; 无定义体→删声明。编译器点名族批量处理。
+import re as _re14
+_h = 'reconstruct-out/_unnamespaced.h'
+_c = 'reconstruct-out/_unnamespaced.cpp'
+_ht = open(_h, errors='ignore').read()
+_ct = open(_c, errors='ignore').read()
+_n_del = _n_ren = 0
+for m in _re14.finditer(r'void ([A-Z]\w*)\(void \* pThis\); // 1\.14d: [0-9a-f]+\n', _ht):
+    cls = m.group(1)
+    if not _re14.search(r'(?:struct|class)\s+' + cls + r'\s*[\{;]', _ht):
+        continue  # 无同名struct,不遮蔽
+    has_def = f'void {cls}(void * pThis) {{' in _ct
+    call_pat = _re14.compile(r'(?<![\w.])' + cls + r'\(\s*([A-Za-z_][\w\[\]>.&* ]*?)\s*\)\s*;')
+    has_call = bool(_re14.search(r'(?<![\w.])' + cls + r'\(\w', _ct))
+    if has_def or has_call:
+        # 三方改名
+        _ht2 = _ht.replace(f'void {cls}(void * pThis); // 1.14d:', f'void {cls}_ctor(void * pThis); // 1.14d:')
+        _ct2 = _ct.replace(f'void {cls}(void * pThis) {{', f'void {cls}_ctor(void * pThis) {{')
+        _ct2 = _re14.sub(r'(?<![\w.])' + cls + r'\(\s*([A-Za-z_]\w*)\s*\)\s*;', f'{cls}_ctor(\\1);', _ct2)
+        if _ht2 != _ht: _ht = _ht2; _n_ren += 1
+        if _ct2 != _ct: _ct = _ct2
+    else:
+        _ht2 = _re14.sub(r'void ' + cls + r'\(void \* pThis\); // 1\.14d: [0-9a-f]+\n', '', _ht)
+        if _ht2 != _ht: _ht = _ht2; _n_del += 1
+if _n_del or _n_ren:
+    open(_h, 'w').write(_ht); open(_c, 'w').write(_ct)
+print(f'y14) fnShadowedTypes: del={_n_del} rename={_n_ren}')
+
+# y14b) func_0x00553c00 0参声明 vs 2参调用 → varargs
+if 'int func_0x00553c00(void);' in _ct:
+    _ct = _ct.replace('int func_0x00553c00(void);', 'int func_0x00553c00(...); /* 调用点2参 */')
+    open(_c, 'w').write(_ct); print('y14b) func_0x00553c00 varargs ✓')
+
+# y14c) y12f void 对象非法(C2182) → 数组形态
+_f2 = 'reconstruct-out/d2_platform.h'
+_t2 = open(_f2, errors='ignore').read()
+o = 'extern void _default_constructor_closure_;'
+if o in _t2:
+    _t2 = _t2.replace(o, 'extern unsigned char _default_constructor_closure_[1];')
+    open(_f2, 'w').write(_t2); print('y14c) closure decl → array ✓')
+
+# y14d) gbQuaternion 虚槽渲染名补声明(MultiplyBy/GetMatrix 同 SetAxisAngle 族)
+_h2 = 'reconstruct-out/_unnamespaced.h'
+_t3 = open(_h2, errors='ignore').read()
+m = _re14.search(r'struct gbQuaternion \{(.*?)\n\};', _t3, _re14.S)
+if m and 'MultiplyBy' not in m.group(1):
+    _t3 = _t3.replace('struct gbQuaternion {\n',
+        'struct gbQuaternion {\n    void MultiplyBy(gbQuaternion * a, gbQuaternion * b); /* 虚槽渲染名,同SetAxisAngle族 */\n    void GetMatrix(gbMatrix4 * out); /* 虚槽渲染名 */\n', 1)
+    open(_h2, 'w').write(_t3); print('y14d) gbQuaternion 虚槽方法声明 ✓')
