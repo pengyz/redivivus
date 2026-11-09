@@ -913,3 +913,52 @@ t = open(f, errors='ignore').read()
 t2, n = _re2.subn(r'(FUN_00411170\([^,]+, [^,]+, )(?!\(uint32_t\*\))(\w+ \+ (?:0x[0-9a-f]+|\d+)\))', r'\1(uint32_t*)(\2)', t)
 if n: open(f, 'w').write(t2)
 print(f'y15c) FUN_00411170 idempotent casts: {n}')
+
+# y16) d2_platform.h 手工shim全集脚本化(2026-11-09): 干净重拷(渲染器原生output)
+#      会丢全部手工段——byte/uint等30+条Ghidra伪类型typedef是旧树手工补的,
+#      从未脚本化 → regen即丢(byte重定义vs SDK wtypes C2371级联)。幂等按锚点行。
+f = 'reconstruct-out/d2_platform.h'
+t = open(f, errors='ignore').read()
+MS16 = '/* ===== ghidra pseudo-type typedefs (vc6_deepfix y16; regen-survivable) ===== */'
+if MS16 not in t:
+    block = '\n' + MS16 + '\n' + '\n'.join([
+        'typedef unsigned char byte;',
+        'typedef unsigned int uint;',
+        'typedef unsigned short ushort;',
+        'typedef unsigned int ulong;',
+        'typedef uint64_t ulonglong;',
+        'typedef int64_t longlong;',
+        'typedef uint8_t uchar;',
+        'typedef void* pointer;',
+        'typedef uint32_t pointer32;',
+        'typedef uint32_t ImageBaseOffset32;',
+        'typedef uint32_t undefined4;',
+        'typedef uint16_t word;',
+        'typedef uint32_t dword;',
+        'typedef uint64_t qword;',
+        'typedef int8_t sbyte;',
+        'typedef int16_t sword;',
+        'typedef int32_t sdword;',
+        'typedef int64_t sqword;',
+        'typedef uint16_t float2;',
+        'typedef uint16_t wchar16;',
+        'typedef uint16_t unicode;',
+        'typedef uint8_t undefined1;',
+        'typedef uint16_t undefined2;',
+        'typedef uint8_t undefined3;  // 3 bytes — no exact C type',
+        'typedef void vtable;   // opaque virtual function table; `vtable *` == `void *`',
+        'typedef uint8_t unkbool1;',
+        'typedef unsigned __int64 QWORD;',
+        'typedef __int64 LONGLONG;',
+        'typedef unsigned __int64 ULONGLONG;',
+    ]) + '\n'
+    # 插在 L10 注释之后(渲染器原生标记行)
+    anchor = '// std::byte (C++17) from shadowing our byte typedef'
+    if anchor in t:
+        t = t.replace(anchor, anchor + '\n' + block, 1)
+    else:
+        t = t + block
+    open(f, 'w').write(t)
+    print('y16) d2_platform pseudo-type typedefs ✓')
+else:
+    print('y16) d2_platform typedefs already present')

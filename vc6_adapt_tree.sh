@@ -105,5 +105,13 @@ python3 "$(dirname "$0")/vc6_deepfix.py"
 python3 "$(dirname "$0")/vc6_emit_missing.py"
 # 10b) Type::method→成员解析（gbengine.dll 导出表 A 级签名库；调用点 T::m(A0,..)→A0.m(..)/A0->m(..)；
 #      pass0 通用成员可见性清扫兜底 emit-v4 defs 的指针成员缺口——故必须在 emit 之后）
+# P0.2 确定性断言 (2026-11-09): nsfix 不得净删 struct/class 完整定义
+#   (block-rebuild 曾吞相邻定义: 单次运行 176→173, gbTextureArray 等 5 个原生定义丢失)
+NSFIX_BEFORE=$(grep -cE '^(struct|class) [A-Za-z_][A-Za-z0-9_]* \{' "$OUT/_unnamespaced.h")
 python3 "$(dirname "$0")/vc6_ns_freefn.py"
+NSFIX_AFTER=$(grep -cE '^(struct|class) [A-Za-z_][A-Za-z0-9_]* \{' "$OUT/_unnamespaced.h")
+if [ "$NSFIX_AFTER" -lt "$NSFIX_BEFORE" ]; then
+  echo "P0.2 FAIL: nsfix net-removed definitions ($NSFIX_BEFORE -> $NSFIX_AFTER) — block-rebuild boundary bug"; exit 1
+fi
+echo "P0.2 ok: definitions $NSFIX_BEFORE -> $NSFIX_AFTER"
 echo "vc6_adapt_tree: ok ($(ls "$OUT"/cstdint "$OUT"/wintrust.h 2>/dev/null | wc -l) headers in tree root)"

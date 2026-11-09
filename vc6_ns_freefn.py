@@ -354,6 +354,41 @@ def main():
     decl_ok, decl_skip = {}, []
     fwd_by_file = {}          # path -> ordered names to forward-declare at file top
     skipped_byval = 0
+    # P0.1c-global (2026-11-09): find_struct_def 失败(宿主定义已被吞)的类的孤儿
+    # marker 也必须清理——否则残留在错误宿主里的旧块会在后续轮次继续错位重建。
+    _decl_re_g = re.compile(r'^\s*\S[^\n]*@@Z \*/\s*$')
+    for _p, _t in list(headers.items()):
+        _changed = False
+        _guard = 0
+        while _guard < 200:
+            _guard += 1
+            _m = re.search(r'/\* nsfix:([A-Za-z_]\w*) -', _t)
+            if not _m:
+                break
+            _cls_o = _m.group(1)
+            if _cls_o in wanted and find_struct_def(list(headers.items()), _cls_o) is not None:
+                # 合法宿主存在——跳过此 marker 找下一个
+                _t = _t[:_m.end()] + '\x00SKIP\x00' + _t[_m.end():]
+                continue
+            _ms = _m.start()
+            _ls = _t.rfind('\n', 0, _ms) + 1
+            _le = _t.find('\n', _ms)
+            _seg = _le + 1
+            while _seg < len(_t):
+                _nl = _t.find('\n', _seg)
+                _line = _t[_seg:_nl if _nl >= 0 else len(_t)]
+                if _decl_re_g.match(_line):
+                    _seg = _nl + 1
+                else:
+                    break
+            _t = _t[:_ls] + _t[_seg:]
+            _changed = True
+        if _changed:
+            _t = _t.replace('\x00SKIP\x00', '')
+            headers[_p] = _t
+            if not DRY:
+                open(_p, 'w').write(_t)
+            print(f'nsfix: P0.1c orphan sweep on {_p}')
     for cls, meths in sorted(wanted.items()):
         loc = find_struct_def(list(headers.items()), cls)
         if loc is None:
@@ -373,8 +408,73 @@ def main():
             # glue corruption, 2026-11-07/08).
             marker_start = text.index(marker)
             open_idx = text.rfind('struct ', 0, marker_start)
+            # P0.1a (2026-11-09): 宿主一致性——rfind 找到的 struct 必须就是本类。
+            # 历史 marker 可能被插进错误宿主(嵌套深处 24 空格缩进实证),此时
+            # brace_close 从错误位置数 → 删除范围吞掉相邻定义(单次运行 -3 定义实证)。
+            host_m = re.match(r'struct\s+([A-Za-z_]\w*)', text[open_idx:])
+            host_name = host_m.group(1) if host_m else None
+            if host_name != cls:
+                # P0.1c (v2 2026-11-09): 孤儿块**迁移**而非删除——decl 行被调用点引用
+                # (首版删除致 9431→3973 回退实证: 宿主错位≠内容无用)。搬去正确宿主。
+                ls_ = text.rfind('\n', 0, marker_start) + 1
+                le_ = text.find('\n', marker_start)
+                seg = le_ + 1
+                decl_re = re.compile(r'^\s*\S[^\n]*@@Z \*/\s*$')
+                while seg < len(text):
+                    nl = text.find('\n', seg)
+                    line = text[seg:nl if nl >= 0 else len(text)]
+                    if decl_re.match(line):
+                        seg = nl + 1
+                    else:
+                        break
+                block_lines = [l for l in text[ls_:seg].split('\n')]
+                # 迁移去重: 宿主已有同名方法声明(C2535 实证)→丢弃该行;marker行保留
+                _keep = []
+                _body = headers and next((tt for pp, tt in headers.items() if re.search(r'^struct\s+' + re.escape(cls) + r'\s*\{', tt, re.M)), '')
+                for _bl in block_lines:
+                    if _bl.lstrip().startswith('/* nsfix:'):
+                        _keep.append(_bl); continue
+                    _nm = re.match(r'\s*(?:[A-Za-z_][\w\s\*&:<>]*?\s)?([A-Za-z_]\w*)\s*\(', _bl)
+                    if _nm and _body and re.search(r'\b' + re.escape(_nm.group(1)) + r'\s*\(', _body):
+                        continue  # 宿主已有
+                    _keep.append(_bl)
+                block = '\n'.join([l for l in _keep if l is not None])
+                if not any(l.strip() and not l.lstrip().startswith('/*') for l in _keep):
+                    # 全部重复→只删孤儿不搬
+                    pass
+                loc2 = find_struct_def(list(headers.items()), cls)
+                if loc2 is not None:
+                    path2, close2 = loc2
+                    t2_ = headers[path2]
+                    if path2 == path:
+                        # 同文件: 先删后插(索引从后向前安全)
+                        text = text[:ls_] + text[seg:]
+                        text = text[:close2] + block + text[close2:]
+                        headers[path] = text
+                        if not DRY:
+                            open(path, 'w').write(text)
+                    else:
+                        text = text[:ls_] + text[seg:]
+                        t2_ = t2_[:close2] + block + t2_[close2:]
+                        headers[path] = text
+                        headers[path2] = t2_
+                        if not DRY:
+                            open(path, 'w').write(text)
+                            open(path2, 'w').write(t2_)
+                    print(f'nsfix: P0.1 orphan block for {cls} MIGRATED {host_name} -> {cls} ({"same" if path2 == path else path2})')
+                else:
+                    text = text[:ls_] + text[seg:]
+                    headers[path] = text
+                    if not DRY:
+                        open(path, 'w').write(text)
+                    print(f'nsfix: P0.1 orphan block for {cls} removed (no host; was {host_name})')
+                continue
             open_idx = text.index('{', open_idx)
             close_idx = brace_close(text, open_idx)
+            # P0.1b: marker 必须落在宿主体内(close_idx > marker_start 且闭合有效)
+            if close_idx < 0 or close_idx <= marker_start:
+                print(f'nsfix: P0.1 skip rebuild {cls}: brace_close={close_idx} vs marker_start={marker_start}')
+                continue
             text = text[:marker_start] + text[close_idx:]
             close = marker_start          # `};` now occupies this exact position
             headers[path] = text
@@ -458,6 +558,13 @@ def main():
                         decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
                         dline = f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */'
                     if dline not in lines:
+                        # P0.1d (2026-11-09): 宿主已有同名声明(渲染器原生/历史轮次)则不插
+                        # — rebuild 与宿主存量撞名 → C2535(gbGeomNode EnableBlade ×2 实证)
+                        _nm2 = re.match(r'\s*(?:[A-Za-z_][\w\s\*&:<>]*?\s)?([A-Za-z_]\w*)\s*\(', dline)
+                        if _nm2:
+                            _outside = text[:text.find(marker)] if marker in text else text
+                            if re.search(r'\b' + re.escape(_nm2.group(1)) + r'\s*\(', _outside):
+                                continue
                         lines.append(dline)
                 insert = '\n'.join(lines) + '\n'
             text = text[:close] + insert + text[close:]
