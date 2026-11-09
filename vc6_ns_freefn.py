@@ -116,6 +116,10 @@ def load_siglib():
         # `<Cls>::_default_constructor_closure_` — alias it so call-site scans match.
         if e['method'] == '??_F':
             lib.setdefault((e['cls'], '_default_constructor_closure_'), e)
+        # ctor alias: `T::T(args)` call sites use meth=T, but the siglib key is
+        # (cls, '??0'). Alias (cls, cls) so pass2/pass3 can find the entry.
+        if e['kind'] == 'ctor':
+            lib.setdefault((e['cls'], e['cls']), e)
     return lib, len(mangled), unsup, lib_overloads
 
 def parse_export(mn):
@@ -305,7 +309,13 @@ def main():
             if e is None: e = lib.get((cls, '??' + meth))                     # other ??-forms
             if e is None:
                 unmatched[f'{cls}::{meth}'] = unmatched.get(f'{cls}::{meth}', 0) + 1
-            elif e['kind'] == 'ctor' and e['method'] != '??_F': skips['ctor'] += 1
+            elif e['kind'] == 'ctor':
+                # ctors ARE real functions (dll exports) — declare them as void
+                # methods with the class name. This fixes C2661 ctor-not-found.
+                if e.get('params') is not None:
+                    wanted.setdefault(cls, set()).add(meth)
+                else:
+                    skips['ctor'] += 1
             elif e['kind'] == 'op':   skips['op'] += 1
             else:
                 wanted.setdefault(cls, set()).add(meth)
@@ -378,8 +388,22 @@ def main():
             lines = [f'    /* nsfix:{cls} - sigs from gbengine.dll exports (A-level); bodies pending extract (FID skip in B-track extract) */']
             fwd_names = fwd_by_file.setdefault(path, [])
             for meth in sorted(meths):
+                # ctor overload: meth == cls → emit ALL ??0 (ctor) overloads
+                if meth == cls:
+                    ctor_ovs = []
+                    for (oc, om), ovl in lib_overloads.items():
+                        if oc == cls and any(e2['method'] == '??0' for e2 in ovl):
+                            ctor_ovs = ovl; break
+                    if ctor_ovs:
+                        for ce in ctor_ovs:
+                            if ce['kind'] != 'ctor': continue
+                            ps = ', '.join(ce['params']) if ce['params'] else ''
+                            d2 = f'    {cls}({ps}); /* {ce["mangled"]} */'
+                            if d2 not in lines:
+                                lines.append(d2)
+                    continue
                 ov_lists = [v for k2, v in lib_overloads.items() if k2[0] == cls and k2[1] == meth]
-                ovs = [e2 for lst in ov_lists for e2 in lst] if ov_lists else [lib[(cls, meth)]]
+                ovs = [e2 for lst in ov_lists for e2 in lst] if ov_lists else [lib.get((cls, meth), lib.get((cls, "??0"), lib.get((cls, cls))))]
                 # scrub stale lines (old parser wrong param counts), mangled-keyed
                 for _i2 in range(len(lines) - 1, -1, -1):
                     _mm = re.search(r'/\* (\?[A-Za-z_?][^*]+) \*/\s*$', lines[_i2])
@@ -427,8 +451,11 @@ def main():
                         continue
                     ps = ', '.join(params)
                     constkw = ' const' if e.get('const') else ''
-                    decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
-                    dline = f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */'
+                    if e['kind'] == 'ctor':
+                        dline = f'    {meth}({ps}); /* {e["mangled"]} */'
+                    else:
+                        decl_name = '_default_constructor_closure_' if e['method'] == '??_F' else meth
+                        dline = f'    {ret} {decl_name}({ps}){constkw}; /* {e["mangled"]} */'
                     if dline not in lines:
                         lines.append(dline)
                 insert = '\n'.join(lines) + '\n'
